@@ -16,7 +16,7 @@
         const score = Number(localStorage.getItem("riskScore") || 0);
         const resultBox = document.getElementById("result");
 
-        if (score >= 10) {
+        if (score >= 12) {
             resultBox.innerHTML = `<p>⚠ ハイリスク：注意が必要です</p>`;
         } else if (score >= 5) {
             resultBox.innerHTML = `<p>● 中リスク：行動に注意しましょう</p>`;
