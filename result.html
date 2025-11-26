@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>診断結果</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <h1>診断結果</h1>
+
+    <div id="result"></div>
+
+    <script>
+        const score = Number(localStorage.getItem("riskScore") || 0);
+        const resultBox = document.getElementById("result");
+
+        if (score >= 10) {
+            resultBox.innerHTML = `<p>⚠ ハイリスク：注意が必要です</p>`;
+        } else if (score >= 5) {
+            resultBox.innerHTML = `<p>● 中リスク：行動に注意しましょう</p>`;
+        } else {
+            resultBox.innerHTML = `<p>○ ローリスク：良好な距離感です</p>`;
+        }
+    </script>
+</body>
+
+</html>
