@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>隙間時間ギャンブル 疑似体験</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            background: #1976d2;
+            color: white;
+        }
+
+        button:disabled {
+            background: #aaa;
+        }
+
+        .log {
+            font-size: 14px;
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: #eef2f5;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .summary {
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>隙間時間ギャンブル 疑似体験</h1>
+
+    <p style="text-align:center;">
+        1回数十秒で終わる操作を、<br>
+        <strong>何度も繰り返した場合</strong>を体験します。
+    </p>
+
+    <div class="box">
+        <p>1回の購入金額：<strong>300円</strong></p>
+        <p>当選確率：<strong>1 / 50</strong></p>
+
+        <button id="playBtn">今すぐ1回引く</button>
+
+        <div class="summary" id="summary">
+            回数：0回<br>
+            使用金額：0円<br>
+            当たり回数：0回
+        </div>
+
+        <div class="log" id="logBox"></div>
+    </div>
+
+    <div class="box" id="reflection" style="display:none;">
+        <h2>振り返り</h2>
+        <p id="reflectionText"></p>
+    </div>
+
+    <script>
+        // ===============================
+        // ▼ 設定値
+        // ===============================
+        const COST = 300;
+        const WIN_RATE = 50; // 1 / 50
+
+        let playCount = 0;
+        let totalCost = 0;
+        let winCount = 0;
+
+        const playBtn = document.getElementById("playBtn");
+        const summary = document.getElementById("summary");
+        const logBox = document.getElementById("logBox");
+        const reflection = document.getElementById("reflection");
+        const reflectionText = document.getElementById("reflectionText");
+
+        // ===============================
+        // ▼ 実行
+        // ===============================
+        playBtn.onclick = () => {
+            playCount++;
+            totalCost += COST;
+
+            const isWin = Math.floor(Math.random() * WIN_RATE) === 0;
+            if (isWin) winCount++;
+
+            const log = document.createElement("div");
+            log.textContent = `【${playCount}回目】${isWin ? "当たり！" : "はずれ"}`;
+            logBox.prepend(log);
+
+            summary.innerHTML = `
+        回数：${playCount}回<br>
+        使用金額：${totalCost}円<br>
+        当たり回数：${winCount}回
+    `;
+
+            if (playCount >= 20) {
+                finishExperience();
+            }
+        };
+
+        // ===============================
+        // ▼ 体験終了
+        // ===============================
+        function finishExperience() {
+            playBtn.disabled = true;
+            reflection.style.display = "block";
+
+            reflectionText.innerHTML = `
+        わずか数分の操作でも、<br>
+        <strong>${totalCost}円</strong>を使用しています。<br><br>
+
+        隙間時間でのギャンブルは、<br>
+        「時間を使っている感覚」が薄いまま<br>
+        回数と金額が増えやすい特徴があります。<br><br>
+
+        この体験をもとに、<br>
+        自分にとって適切な距離を考えてみてください。
+    `;
+
+            // 管理者用ログ
+            const logs = JSON.parse(localStorage.getItem("adminLogs")) || [];
+            logs.push({
+                type: "quick_experience",
+                playCount,
+                totalCost,
+                finishedAt: new Date().toISOString()
+            });
+            localStorage.setItem("adminLogs", JSON.stringify(logs));
+        }
+    </script>
+
+</body>
+
+</html>

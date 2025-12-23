@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ページ</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f4f6f8;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        th {
+            background: #e0e0e0;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>管理者用：診断結果ログ</h1>
+
+    <div class="summary">
+        <div class="card">
+            <strong>診断人数</strong><br>
+            <span id="userCount">0</span>人
+        </div>
+        <div class="card">
+            <strong>① 適度な距離</strong><br>
+            <span id="q1Count">0</span>
+        </div>
+        <div class="card">
+            <strong>② 依存リスク高</strong><br>
+            <span id="q2Count">0</span>
+        </div>
+        <div class="card">
+            <strong>③ 時間消費大</strong><br>
+            <span id="q3Count">0</span>
+        </div>
+        <div class="card">
+            <strong>④ 注意必要</strong><br>
+            <span id="q4Count">0</span>
+        </div>
+    </div>
+
+    <h2>個別ログ一覧</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>依存度</th>
+                <th>使用時間%</th>
+                <th>象限</th>
+                <th>診断日時</th>
+            </tr>
+        </thead>
+        <tbody id="logTable">
+        </tbody>
+    </table>
+
+    <button onclick="clearLogs()">ログを全削除</button>
+
+    <script>
+        // ===============================
+        // ▼ ログ取得
+        // ===============================
+        const logs = JSON.parse(localStorage.getItem("adminLogs")) || [];
+
+        // ===============================
+        // ▼ 集計用
+        // ===============================
+        let qCount = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+        // ===============================
+        // ▼ 表示更新
+        // ===============================
+        document.getElementById("userCount").textContent = logs.length;
+
+        const table = document.getElementById("logTable");
+
+        logs.forEach(log => {
+            const timeRate = localStorage.getItem("timeRate") || "-";
+            const quadrant = localStorage.getItem("quadrantResult") || "-";
+
+            if (quadrant !== "-") {
+                qCount[quadrant]++;
+            }
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+        <td>${log.userId}</td>
+        <td>${log.riskScore}</td>
+        <td>${timeRate}</td>
+        <td>${quadrant}</td>
+        <td>${log.finishedAt}</td>
+    `;
+            table.appendChild(tr);
+        });
+
+        // 象限別人数
+        document.getElementById("q1Count").textContent = qCount[1];
+        document.getElementById("q2Count").textContent = qCount[2];
+        document.getElementById("q3Count").textContent = qCount[3];
+        document.getElementById("q4Count").textContent = qCount[4];
+
+        // ===============================
+        // ▼ ログ削除
+        // ===============================
+        function clearLogs() {
+            if (confirm("全ログを削除しますか？")) {
+                localStorage.removeItem("adminLogs");
+                location.reload();
+            }
+        }
+    </script>
+
+</body>
+
+</html>

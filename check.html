@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>依存度セルフチェック</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        #questionBox {
+            background: white;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        #yesBtn {
+            background: #e57373;
+            color: white;
+        }
+
+        #noBtn {
+            background: #81c784;
+            color: white;
+        }
+
+        .progress {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>依存度セルフチェック</h1>
+
+    <p style="text-align:center;">
+        以下の質問に、<br>
+        <strong>直感で「はい / いいえ」</strong>で答えてください。
+    </p>
+
+    <div id="questionBox">
+        質問が表示されます
+    </div>
+
+    <div class="buttons">
+        <button id="yesBtn">はい</button>
+        <button id="noBtn">いいえ</button>
+    </div>
+
+    <div class="progress" id="progressText">
+        進行状況
+    </div>
+
+    <!-- 診断ロジック -->
+    <script src="app.js"></script>
+
+    <script>
+        // 進行状況表示（UI補助）
+        const progressText = document.getElementById("progressText");
+
+        const originalShowQuestion = showQuestion;
+        showQuestion = function () {
+            originalShowQuestion();
+            progressText.textContent = `質問 ${currentIndex + 1} / ${questions.length}`;
+        };
+    </script>
+
+</body>
+
+</html>
