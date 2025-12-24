@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用時間チェック</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .section {
+            margin: 30px 0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        .value {
+            font-size: 18px;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>ギャンブル使用時間チェック</h1>
+
+    <div class="section">
+        <p>
+            平日1日あたりの<br>
+            <strong>自由に使える時間</strong>はどれくらいですか？
+        </p>
+
+        <input type="range" id="freeTime" min="1" max="10" value="5">
+        <div class="value">
+            <span id="freeTimeValue">5</span> 時間
+        </div>
+    </div>
+
+    <div class="section">
+        <p>
+            そのうち、<br>
+            <strong>ギャンブル・関連コンテンツ</strong>に<br>
+            使っている時間はどれくらいですか？
+        </p>
+
+        <input type="range" id="playTime" min="0" max="10" value="2">
+        <div class="value">
+            <span id="playTimeValue">2</span> 時間
+        </div>
+    </div>
+
+    <button id="saveBtn">結果を保存する</button>
+
+    <script>
+        const freeTime = document.getElementById("freeTime");
+        const playTime = document.getElementById("playTime");
+        const freeTimeValue = document.getElementById("freeTimeValue");
+        const playTimeValue = document.getElementById("playTimeValue");
+
+        freeTime.oninput = () => freeTimeValue.textContent = freeTime.value;
+        playTime.oninput = () => playTimeValue.textContent = playTime.value;
+
+        document.getElementById("saveBtn").onclick = () => {
+            const free = Number(freeTime.value);
+            const play = Number(playTime.value);
+
+            const score = Math.round((play / free) * 10);
+
+            localStorage.setItem("playTimeScore", score);
+            window.location.href = "index.html";
+        };
+    </script>
+
+</body>
+
+</html>
