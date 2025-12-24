@@ -97,10 +97,10 @@
 
         <div class="slider-box">
             <label>
-                趣味時間に占めるギャンブルの割合（％）
-                <input type="range" min="0" max="100" value="20" id="timeRate">
+                趣味時間に占めるギャンブルの割合（参考表示）
+                <input type="range" min="0" max="100" id="timeRate" disabled>
             </label>
-            <p>現在：<strong><span id="rateValue">20</span>%</strong></p>
+            <p>現在：<strong><span id="rateValue"></span>%</strong></p>
         </div>
     </div>
 
@@ -125,39 +125,35 @@
         </div>
     </div>
 
-    <div class="comment" id="commentBox">
-        コメントが表示されます
-    </div>
+    <div class="comment" id="commentBox"></div>
 
     <script>
         // ===============================
-        // ▼ 判定基準（後で調整可能）
+        // ▼ 判定基準（調整可）
         // ===============================
         const DEPENDENCE_BORDER = 8;
-        const TIME_BORDER = 30;
+        const TIME_BORDER = 5;
 
         // ===============================
-        // ▼ 診断結果取得
+        // ▼ localStorage 取得
         // ===============================
-        const result = JSON.parse(localStorage.getItem("riskResult"));
+        const riskScore = Number(localStorage.getItem("riskScore"));
+        const playTimeScore = Number(localStorage.getItem("playTimeScore"));
+
         const scoreText = document.getElementById("scoreText");
-
-        if (!result) {
-            scoreText.textContent = "診断結果が見つかりません。";
-        } else {
-            scoreText.textContent = `依存度スコア：${result.riskScore}`;
-        }
-
-        // ===============================
-        // ▼ スライダー
-        // ===============================
         const slider = document.getElementById("timeRate");
         const rateValue = document.getElementById("rateValue");
 
-        slider.oninput = () => {
-            rateValue.textContent = slider.value;
-            updateResult();
-        };
+        if (isNaN(riskScore) || isNaN(playTimeScore)) {
+            scoreText.textContent = "診断データが不足しています。";
+        } else {
+            scoreText.textContent = `依存度スコア：${riskScore} ／ 使用時間スコア：${playTimeScore}`;
+        }
+
+        // スライダーは「視覚化用」
+        const percent = Math.min(playTimeScore * 10, 100);
+        slider.value = percent;
+        rateValue.textContent = percent;
 
         // ===============================
         // ▼ 4象限判定
@@ -170,22 +166,22 @@
         }
 
         // ===============================
-        // ▼ コメント文
+        // ▼ コメント
         // ===============================
         const comments = {
             1: "現在はギャンブルと適切な距離を保てている状態です。今後も時間と金額の管理を意識しましょう。",
-            2: "現時点では時間は抑えられていますが、依存リスクが高まりやすい状態です。頻度やきっかけを振り返ってみましょう。",
-            3: "依存度は高くありませんが、使用時間が長くなりやすい傾向があります。生活全体のバランスを確認してみてください。",
+            2: "時間は抑えられていますが、心理的な依存リスクが高まりやすい状態です。頻度やきっかけを振り返ってみましょう。",
+            3: "依存度は高くありませんが、使用時間が長くなりやすい傾向があります。生活全体のバランスを意識してみてください。",
             4: "依存度・使用時間ともに注意が必要な状態です。休む日を設ける、第三者に相談するなどの選択肢も考えてみましょう。"
         };
 
         // ===============================
-        // ▼ 表示更新
+        // ▼ 表示処理
         // ===============================
         function updateResult() {
             document.querySelectorAll(".dot").forEach(d => d.remove());
 
-            const q = getQuadrant(result.riskScore, slider.value);
+            const q = getQuadrant(riskScore, playTimeScore);
             const target = document.getElementById("q" + q);
 
             const dot = document.createElement("div");
@@ -194,12 +190,10 @@
 
             document.getElementById("commentBox").textContent = comments[q];
 
-            // 次ページ・管理者用に保存
+            // 管理者・分析用
             localStorage.setItem("quadrantResult", q);
-            localStorage.setItem("timeRate", slider.value);
         }
 
-        // 初期表示
         updateResult();
     </script>
 
