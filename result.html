@@ -1,54 +1,161 @@
-<script>
-    // ===============================
-    // ▼ 結果取得（第三者対応）
-    // ===============================
-    const riskScore = Number(localStorage.getItem("riskScore"));
-    const playTime = Number(localStorage.getItem("playTimeScore")) || 0;
+<!DOCTYPE html>
+<html lang="ja">
 
-    if (isNaN(riskScore)) {
-        document.getElementById("scoreText").textContent =
-            "先に診断を行ってください。";
-        throw new Error("診断データなし");
-    }
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>診断結果</title>
 
-    document.getElementById("scoreText").textContent =
-        `依存度スコア：${riskScore}`;
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f9f9f9;
+        }
 
-    // ===============================
-    // ▼ 4象限判定
-    // ===============================
-    const DEPENDENCE_BORDER = 8;
-    const TIME_BORDER = 30;
+        h1,
+        h2 {
+            text-align: center;
+        }
 
-    function getQuadrant(risk, time) {
-        if (risk < DEPENDENCE_BORDER && time < TIME_BORDER) return 1;
-        if (risk >= DEPENDENCE_BORDER && time < TIME_BORDER) return 2;
-        if (risk < DEPENDENCE_BORDER && time >= TIME_BORDER) return 3;
-        return 4;
-    }
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
 
-    const quadrant = getQuadrant(riskScore, playTime);
+        input[type="range"] {
+            width: 100%;
+        }
 
-    // ===============================
-    // ▼ Googleフォーム送信
-    // ===============================
-    function sendToGoogleForm() {
-        const formURL =
-            "https://docs.google.com/forms/d/e/1FAIpQLSdBX1JtoqpsJk5neMKoTio64_lPrelfPKw-6GJNoTitaYn5rA/formResponse";
+        .map {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+        }
 
-        const data = new FormData();
-        data.append("entry.859246831", crypto.randomUUID()); // 診断ID
-        data.append("entry.345149634", riskScore);
-        data.append("entry.1476647307", playTime);
-        data.append("entry.801528040", quadrant);
-        data.append("entry.876465189", new Date().toISOString());
+        .quadrant {
+            position: relative;
+            padding: 10px;
+            height: 120px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
 
-        fetch(formURL, {
-            method: "POST",
-            mode: "no-cors",
-            body: data,
-        });
-    }
+        .q1 {
+            background: #e8f5e9
+        }
 
-    sendToGoogleForm();
-</script>
+        .q2 {
+            background: #fffde7
+        }
+
+        .q3 {
+            background: #fff3e0
+        }
+
+        .q4 {
+            background: #ffebee
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>診断結果</h1>
+
+    <div id="content"></div>
+
+    <script>
+        /* ===============================
+           ▼ localStorage 取得
+        ================================ */
+        const riskResult = JSON.parse(localStorage.getItem("riskResult"));
+
+        /* ===============================
+           ▼ 診断未実施の場合
+        ================================ */
+        if (!riskResult) {
+            document.getElementById("content").innerHTML = `
+    <div class="box">
+      <p>診断結果が見つかりません。</p>
+      <p>最初から診断を行ってください。</p>
+      <a href="index.html">▶ 診断ページへ戻る</a>
+    </div>
+  `;
+            throw new Error("診断未実施");
+        }
+
+        /* ===============================
+           ▼ 診断済みUI
+        ================================ */
+        document.getElementById("content").innerHTML = `
+  <div class="box">
+    <p>依存度スコア：<strong>${riskResult.riskScore}</strong></p>
+
+    <label>
+      趣味時間に占めるギャンブル割合（％）
+      <input type="range" min="0" max="100" value="20" id="timeRate">
+    </label>
+    <p>現在：<span id="rateValue">20</span>%</p>
+  </div>
+
+  <h2>あなたの位置</h2>
+  <div class="map">
+    <div class="quadrant q2" id="q2">② 依存高</div>
+    <div class="quadrant q4" id="q4">④ 注意</div>
+    <div class="quadrant q1" id="q1">① 適度</div>
+    <div class="quadrant q3" id="q3">③ 時間多</div>
+  </div>
+`;
+
+        /* ===============================
+           ▼ 判定ロジック
+        ================================ */
+        const DEP = 8;
+        const TIME = 30;
+
+        const slider = document.getElementById("timeRate");
+        const rateValue = document.getElementById("rateValue");
+
+        function getQuadrant(risk, time) {
+            if (risk < DEP && time < TIME) return 1;
+            if (risk >= DEP && time < TIME) return 2;
+            if (risk < DEP && time >= TIME) return 3;
+            return 4;
+        }
+
+        function update() {
+            document.querySelectorAll(".dot").forEach(d => d.remove());
+            rateValue.textContent = slider.value;
+
+            const q = getQuadrant(riskResult.riskScore, slider.value);
+            const target = document.getElementById("q" + q);
+
+            const dot = document.createElement("div");
+            dot.className = "dot";
+            target.appendChild(dot);
+
+            localStorage.setItem("timeRate", slider.value);
+            localStorage.setItem("quadrantResult", q);
+        }
+
+        slider.addEventListener("input", update);
+        update();
+    </script>
+
+</body>
+
+</html>
