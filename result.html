@@ -2,13 +2,14 @@
 <html lang="ja">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>診断結果</title>
 
     <style>
         body {
             font-family: sans-serif;
+            margin: 0;
             padding: 20px;
             background: #f9f9f9;
         }
@@ -45,29 +46,42 @@
         }
 
         .q1 {
-            background: #e8f5e9
+            background: #e8f5e9;
         }
 
         .q2 {
-            background: #fffde7
+            background: #fffde7;
         }
 
         .q3 {
-            background: #fff3e0
+            background: #fff3e0;
         }
 
         .q4 {
-            background: #ffebee
+            background: #ffebee;
         }
 
         .dot {
             width: 14px;
             height: 14px;
-            background: red;
+            background: #d32f2f;
             border-radius: 50%;
             position: absolute;
             bottom: 10px;
             right: 10px;
+        }
+
+        .comment {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef2f5;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -80,7 +94,7 @@
 
     <script>
         /* ===============================
-           ▼ localStorage 取得
+           ▼ 診断結果の取得
         ================================ */
         const riskResult = JSON.parse(localStorage.getItem("riskResult"));
 
@@ -99,61 +113,106 @@
         }
 
         /* ===============================
-           ▼ 診断済みUI
+           ▼ UI描画
         ================================ */
         document.getElementById("content").innerHTML = `
   <div class="box">
     <p>依存度スコア：<strong>${riskResult.riskScore}</strong></p>
 
     <label>
-      趣味時間に占めるギャンブル割合（％）
+      趣味時間に占めるギャンブルの割合（％）
       <input type="range" min="0" max="100" value="20" id="timeRate">
     </label>
-    <p>現在：<span id="rateValue">20</span>%</p>
+    <p>現在：<strong><span id="rateValue">20</span>%</strong></p>
   </div>
 
-  <h2>あなたの位置</h2>
+  <h2>あなたの現在位置</h2>
+
   <div class="map">
-    <div class="quadrant q2" id="q2">② 依存高</div>
-    <div class="quadrant q4" id="q4">④ 注意</div>
-    <div class="quadrant q1" id="q1">① 適度</div>
-    <div class="quadrant q3" id="q3">③ 時間多</div>
+    <div class="quadrant q2" id="q2">② 依存度が高まりやすい</div>
+    <div class="quadrant q4" id="q4">④ 注意が必要</div>
+    <div class="quadrant q1" id="q1">① 適度な距離</div>
+    <div class="quadrant q3" id="q3">③ 時間消費が大きい</div>
   </div>
+
+  <div class="comment" id="commentBox"></div>
 `;
 
         /* ===============================
            ▼ 判定ロジック
         ================================ */
-        const DEP = 8;
-        const TIME = 30;
+        const DEPENDENCE_BORDER = 8;
+        const TIME_BORDER = 30;
 
         const slider = document.getElementById("timeRate");
         const rateValue = document.getElementById("rateValue");
 
+        const comments = {
+            1: "現在はギャンブルと適切な距離を保てている状態です。",
+            2: "時間は抑えられていますが、依存リスクが高まりやすい状態です。",
+            3: "依存度は高くありませんが、使用時間が長くなりがちです。",
+            4: "依存度・使用時間ともに注意が必要な状態です。"
+        };
+
         function getQuadrant(risk, time) {
-            if (risk < DEP && time < TIME) return 1;
-            if (risk >= DEP && time < TIME) return 2;
-            if (risk < DEP && time >= TIME) return 3;
+            if (risk < DEPENDENCE_BORDER && time < TIME_BORDER) return 1;
+            if (risk >= DEPENDENCE_BORDER && time < TIME_BORDER) return 2;
+            if (risk < DEPENDENCE_BORDER && time >= TIME_BORDER) return 3;
             return 4;
         }
 
-        function update() {
-            document.querySelectorAll(".dot").forEach(d => d.remove());
-            rateValue.textContent = slider.value;
+        /* ===============================
+           ▼ Googleフォーム送信
+        ================================ */
+        function sendToGoogleForm(riskScore, playTime, quadrant) {
+            const formURL =
+                "https://docs.google.com/forms/d/e/1FAIpQLSdBX1JtoqpsJk5neMKoTio64_lPrelfPKw-6GJNoTitaYn5rA/formResponse";
 
-            const q = getQuadrant(riskResult.riskScore, slider.value);
+            const data = new FormData();
+            data.append("entry.859246831", Date.now());
+            data.append("entry.345149634", riskScore);
+            data.append("entry.1476647307", playTime);
+            data.append("entry.801528040", quadrant);
+            data.append("entry.876465189", new Date().toLocaleString());
+
+            fetch(formURL, {
+                method: "POST",
+                mode: "no-cors",
+                body: data
+            });
+        }
+
+        let sent = false;
+
+        /* ===============================
+           ▼ 表示更新
+        ================================ */
+        function updateResult() {
+            document.querySelectorAll(".dot").forEach(d => d.remove());
+
+            const time = slider.value;
+            rateValue.textContent = time;
+
+            const q = getQuadrant(riskResult.riskScore, time);
             const target = document.getElementById("q" + q);
 
             const dot = document.createElement("div");
             dot.className = "dot";
             target.appendChild(dot);
 
-            localStorage.setItem("timeRate", slider.value);
+            document.getElementById("commentBox").textContent = comments[q];
+
+            localStorage.setItem("timeRate", time);
             localStorage.setItem("quadrantResult", q);
+
+            if (!sent) {
+                sendToGoogleForm(riskResult.riskScore, time, q);
+                sent = true;
+            }
         }
 
-        slider.addEventListener("input", update);
-        update();
+        slider.addEventListener("input", updateResult);
+        updateResult();
     </script>
 
 </body>
