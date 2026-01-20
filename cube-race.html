@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>キューブレース</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #eef2f5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .layout {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+        }
+
+        .point {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .cube-list {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .cube {
+            padding: 14px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            background: #f9f9f9;
+            user-select: none;
+        }
+
+        .cube.selected {
+            border-color: #d32f2f;
+            background: #fdecea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            background: #d32f2f;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f3f5;
+            border-radius: 6px;
+        }
+
+        /* =========================
+           レース表示（簡易演出）
+        ========================= */
+
+        .race-track {
+            position: relative;
+            height: 260px;
+            margin-top: 30px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            background: linear-gradient(to right, #fafafa, #e0e0e0);
+            overflow: hidden;
+        }
+
+        .runner {
+            position: absolute;
+            left: 10px;
+            width: 72px;
+            height: 26px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 12px;
+            line-height: 26px;
+            background: #90caf9;
+            transition: transform 2.2s ease-out;
+        }
+
+        .runner:nth-child(odd) {
+            background: #a5d6a7;
+        }
+
+        .runner.win {
+            background: #ffcc80;
+            font-weight: bold;
+        }
+
+        .runner.lose {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <h1>キューブレース体験</h1>
+
+        <div class="point">
+            所持ポイント：<span id="point">---</span>P
+        </div>
+
+        <h2>キューブを選ぶ</h2>
+        <div class="cube-list" id="cubeList"></div>
+
+        <div class="form-group">
+            <label>券種を選択</label>
+            <select id="betType">
+                <option value="単勝">単勝</option>
+                <option value="複勝">複勝</option>
+                <option value="ワイド">ワイド</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>賭けポイント</label>
+            <input type="number" id="betAmount" value="1000" min="100">
+        </div>
+
+        <button onclick="buyTicket()">この内容で賭ける</button>
+
+        <!-- レース可視化エリア -->
+        <div class="race-track" id="raceTrack"></div>
+
+        <div class="result" id="resultArea"></div>
+    </div>
+
+    <script src="cube-race.js"></script>
+</body>
+
+</html>

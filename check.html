@@ -61,7 +61,7 @@
 
 <body>
 
-    <h1>依存度セルフチェック</h1>
+    <h1>公営ギャンブル等との距離 セルフチェック</h1>
 
     <p style="text-align:center;">
         以下の質問に、<br>
@@ -77,21 +77,22 @@
         <button id="noBtn">いいえ</button>
     </div>
 
-    <div class="progress" id="progressText">
-        進行状況
-    </div>
+    <div class="progress" id="progressText"></div>
 
-    <!-- 診断ロジック -->
     <script src="app.js"></script>
 
     <script>
-        // 進行状況表示（UI補助）
         const progressText = document.getElementById("progressText");
 
         const originalShowQuestion = showQuestion;
         showQuestion = function () {
             originalShowQuestion();
-            progressText.textContent = `質問 ${currentIndex + 1} / ${questions.length}`;
+            if (phase === "question") {
+                progressText.textContent =
+                    `質問 ${currentIndex + 1} / ${questions.length}`;
+            } else {
+                progressText.textContent = "";
+            }
         };
     </script>
 
