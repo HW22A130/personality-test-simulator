@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- ▼ 正式タイトル -->
     <title>
-        公営ギャンブル等が“適度な娯楽”として成立するためのサポートツールサイト
+        公営ギャンブル等が“適度な娯楽”として成立するための
+        サポートツールサイト
     </title>
 
     <style>
@@ -17,7 +16,6 @@
             background: #e6ecf0;
         }
 
-        /* ===== レイアウト ===== */
         .layout {
             max-width: 720px;
             margin: 0 auto;
@@ -29,7 +27,7 @@
         h1 {
             text-align: center;
             font-size: 22px;
-            line-height: 1.4;
+            margin-bottom: 16px;
         }
 
         .notice {
@@ -49,7 +47,6 @@
             text-align: center;
         }
 
-        /* ===== 円グラフ ===== */
         .donut {
             width: 160px;
             height: 160px;
@@ -66,7 +63,6 @@
             font-weight: bold;
         }
 
-        /* ===== ボタン ===== */
         .button {
             display: block;
             margin: 12px auto 0;
@@ -82,62 +78,59 @@
             background: #90a4ae;
         }
 
-        .exp {
-            background: #4caf50;
-        }
-
         .reset {
             background: #b0bec5;
             font-size: 13px;
-        }
-
-        @media (max-width: 600px) {
-            .layout {
-                padding: 14px;
-            }
         }
     </style>
 </head>
 
 <body>
     <div class="layout">
-
-        <!-- ▼ サイト見出し -->
         <h1>
-            公営ギャンブル等が<br>
-            “適度な娯楽”として成立するための<br>
+            公営ギャンブル等が“適度な娯楽”として成立するための<br>
             サポートツールサイト
         </h1>
 
         <div class="notice">
-            このチェックは、医療的な診断を行うものではありません。<br />
-            公営ギャンブル等との関わり方を、振り返るための目安です。
+            このサイトは、医療的な診断を行うものではありません。<br>
+            公営ギャンブル等との距離感を測るための参考ツールです。
         </div>
 
-        <!-- ▼ 診断結果 簡易表示 -->
+        <!-- 診断結果簡易表示 -->
         <div class="box" id="simpleResult"></div>
 
-        <!-- ▼ メイン導線 -->
+        <!-- 診断・体験コンテンツ -->
         <div class="box">
-            <a class="button" href="check.html">▶ セルフチェックを行う</a>
-            <a class="button sub" href="criteria.html">▶ 診断基準について</a>
+            <a class="button" href="check.html">▶ 距離感チェッカーをする</a>
+            <a class="button sub" href="cube-race.html">▶オンライン競馬等の擬似体験</a>
+            <a class="button sub" href="quick.html">▶オンライン宝くじの擬似体験 </a>
         </div>
 
-        <!-- ▼ 体験コンテンツ導線 -->
+        <!-- 体験談ハブ -->
         <div class="box">
-            <p style="font-size:14px;">
-                体験を通して、公営ギャンブル等との距離感を考える
+            <h2 style="font-size:18px;">制作者のコラム</h2>
+            <p style="font-size:14px; color:#555;">
+                制作者の伝えたいこと、体験談などを<br>
+                文書でまとめています。
             </p>
-            <a class="button exp" href="cube-race.html">▶ キューブレース体験</a>
-            <a class="button exp" href="quick.html">▶ クイック体験</a>
+
+            <a class="button sub" href="stories/story-01.html">
+                ▶ ① 「ギャンブル」って何？
+            </a>
+            <a class="button sub" href="stories/story-02.html">
+                ▶ ② 「レスポンシブルゲーミング」の実践
+            </a>
+            <a class="button sub" href="stories/story-03.html">
+                ▶
+            </a>
         </div>
 
-        <!-- ▼ 展示用リセット -->
+        <!-- 展示用リセット -->
         <div class="box">
             <p style="font-size:13px;">展示・確認用</p>
             <button class="button reset" onclick="resetData()">診断結果をリセット</button>
         </div>
-
     </div>
 
     <script>
@@ -147,34 +140,24 @@
         if (!result) {
             simpleBox.innerHTML = `
                 <p><strong>診断結果が入力されていません</strong></p>
-                <p style="font-size:14px;">
-                    まずはセルフチェックを行ってください。
-                </p>
+                <p style="font-size:14px;">セルフチェックから始めることができます。</p>
             `;
         } else {
-            const rate = result.timeRate ?? 0;
-
             simpleBox.innerHTML = `
                 <p>あなたの現在の目安</p>
-
-                <div class="donut" style="--rate:${rate}%">
-                    ${rate}%
+                <div class="donut" style="--rate:${result.timeRate}%">
+                    ${result.timeRate}%
                 </div>
-
                 <p style="font-size:14px;">
-                    1日の自由時間に占める<br />
+                    1日の自由時間に占める<br>
                     <strong>公営ギャンブル等の割合</strong>
                 </p>
-
-                <a class="button" href="result.html">
-                    ▶ 診断結果を詳しく見る
-                </a>
+                <a class="button" href="result.html">▶ 診断結果を詳しく見る</a>
             `;
         }
 
         function resetData() {
             localStorage.removeItem("riskResult");
-            localStorage.removeItem("adminLogs");
             alert("診断結果をリセットしました");
             location.reload();
         }

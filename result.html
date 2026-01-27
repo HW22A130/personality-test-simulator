@@ -83,6 +83,8 @@
             background: #d32f2f;
             border-radius: 50%;
             transform: translate(-50%, -50%);
+            z-index: 20;
+            /* 追加：必ず最前面 */
         }
 
         .x-axis {
@@ -179,6 +181,54 @@
             color: #666;
             margin-top: 12px;
         }
+
+        .label {
+            position: absolute;
+            font-size: 12px;
+            color: #333;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 4px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .label-q1 {
+            left: 8px;
+            bottom: 8px;
+        }
+
+        .label-q2 {
+            left: 8px;
+            top: 8px;
+        }
+
+        .label-q3 {
+            right: 8px;
+            bottom: 8px;
+        }
+
+        .label-q4 {
+            right: 8px;
+            top: 8px;
+        }
+
+        .map-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            /* 追加 */
+        }
+
+        /* 現在位置の象限を強調表示 */
+        .active-quadrant {
+            outline: 3px solid #d32f2f;
+            outline-offset: -3px;
+            box-shadow: 0 0 0 2px rgba(211, 47, 47, 0.15);
+            position: relative;
+            z-index: 5;
+            /* ← 10 より低く */
+        }
     </style>
 </head>
 
@@ -193,101 +243,148 @@
 
         if (!result) {
             document.getElementById("content").innerHTML = `
-        <div class="box">
-          <p>診断結果が入力されていません。</p>
-          <a href="index.html">▶ セルフチェックはこちら</a>
-        </div>`;
+            <div class="box">
+              <p>診断結果が入力されていません。</p>
+              <a href="index.html">▶ セルフチェックはこちら</a>
+            </div>`;
             throw new Error("未診断");
         }
 
         const timeRate = Number(result.timeRate);
         const MAX_RISK = 21;
 
-        const xPercent = Math.min(Math.max(timeRate, 0), 100);
-        const yPercent = Math.min(
-            Math.max((result.riskScore / MAX_RISK) * 100, 0),
-            100
-        );
+        /* ===== 安全範囲制御 ===== */
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
 
+        const SAFE_MIN = 10;
+        const SAFE_MAX = 90;
+
+        let xPercent = clamp(timeRate, SAFE_MIN, SAFE_MAX);
+        let yPercent = clamp(
+            (result.riskScore / MAX_RISK) * 100,
+            SAFE_MIN,
+            SAFE_MAX
+        );
+        /* ============================= */
+
+        /* ===== 象限判定 ===== */
         const quadrant =
             result.riskScore < MAX_RISK / 2 && timeRate < 50 ? 1 :
                 result.riskScore >= MAX_RISK / 2 && timeRate < 50 ? 2 :
                     result.riskScore < MAX_RISK / 2 && timeRate >= 50 ? 3 : 4;
 
+        /* ===== 赤丸の自動位置補正（文字回避） ===== */
+        const OFFSET = 8; // % 単位で中央に寄せる量
+
+        switch (quadrant) {
+            case 1: // 左下（①）→ 右上へ
+                xPercent += OFFSET;
+                yPercent += OFFSET;
+                break;
+            case 2: // 左上（②）→ 右下へ
+                xPercent += OFFSET;
+                yPercent -= OFFSET;
+                break;
+            case 3: // 右下（③）→ 左上へ
+                xPercent -= OFFSET;
+                yPercent += OFFSET;
+                break;
+            case 4: // 右上（④）→ 左下へ
+                xPercent -= OFFSET;
+                yPercent -= OFFSET;
+                break;
+        }
+
+        // ずらした後もマップ外に出ないよう再クランプ
+        xPercent = clamp(xPercent, SAFE_MIN, SAFE_MAX);
+        yPercent = clamp(yPercent, SAFE_MIN, SAFE_MAX);
+        /* ======================================= */
+
         const comments = {
-            1: "現在は比較的適切な距離を保てている状態です。",
-            2: "使用時間は短いものの、依存リスクが高まりやすい状態です。",
-            3: "依存度は低いですが、時間配分には注意が必要です。",
-            4: "生活への影響が出ている可能性があります。"
+            1: "現在のところ、比較的良い距離感で公営ギャンブル等と関われている状態です。<br>今のバランスを意識しながら楽しむことを一つの目安にしてみてください。",
+            2: "公営ギャンブル等が、生活に影響を与え始めている可能性があります。<br>一度立ち止まって、時間やお金の使い方を振り返ってみることをおすすめします。",
+            3: "公営ギャンブル等に熱中するあまり、時間の感覚を忘れてしまうことがあるかもしれません。<br>疲れや違和感を感じたら、意識的に休憩をとってみるのも一つの方法です。",
+            4: "公営ギャンブル等が、生活に大きな影響を与えている可能性があります。<br>一人で抱え込まず、信頼できる人や支援窓口に相談することも選択肢の一つです。<br>「次は取り返せるかもしれない」と感じたときこそ、一度立ち止まって考えてみてください。"
         };
 
         document.getElementById("content").innerHTML = `
-      <div class="box">
-        <p>依存度スコア：<strong>${result.riskScore}</strong></p>
-        <p>自由時間に占める割合：<strong>${timeRate}%</strong></p>
-      </div>
-
-      <h2>現在の位置（4象限）</h2>
-
-      <div class="map-wrapper">
-        <div class="map-grid">
-          <div class="quadrant q2">② 依存度が高まりやすい</div>
-          <div class="quadrant q4">④ 注意が必要</div>
-          <div class="quadrant q1">① 適度な距離</div>
-          <div class="quadrant q3">③ 時間消費が大きい</div>
+          <div class="box">
+            <p>依存度スコア：<strong>${result.riskScore}</strong></p>
+            <p>自由時間に占める割合：<strong>${timeRate}%</strong></p>
+          </div>
+    
+          <h2>現在の位置（4象限）</h2>
+    
+          <div class="map-wrapper">
+            <div class="map-grid">
+            <div class="quadrant q2" id="q2">② 依存症の距離感</div>
+            <div class="quadrant q4" id="q4">④ 重度の依存症の距離感</div>
+            <div class="quadrant q1" id="q1">① 趣味としてちょうど良い距離感</div>
+            <div class="quadrant q3" id="q3">③ 大好きな趣味程度の距離感</div>
         </div>
+    
+            <div class="map-overlay">
+              <div class="dot" id="dot"></div>
+    
+              <div class="tick-x" style="left:25%; bottom:-20px;">25%</div>
+              <div class="tick-x" style="left:50%; bottom:-20px;">50%</div>
+              <div class="tick-x" style="left:75%; bottom:-20px;">75%</div>
+    
+              <div class="tick-y" style="left:-34px; bottom:25%;">25%</div>
+              <div class="tick-y" style="left:-34px; bottom:50%;">50%</div>
+              <div class="tick-y" style="left:-34px; bottom:75%;">75%</div>
+    
+              <div class="y-axis">依存度（低 → 高）</div>
+            </div>
+    
+            <div class="x-axis">使用時間（少 → 多）</div>
+          </div>
+    
+          <div class="comment">${comments[quadrant]}</div>
+    
+          <div class="detail-area">
+            <button class="detail-button" onclick="location.href='criteria.html'">
+              各設問の診断基準・点数配分を詳しく見る
+            </button>
+            <p class="medical-note">
+              ※ 本診断は医療診断ではありません。あくまで自己理解のための参考情報です。
+            </p>
+          </div>
+    
+          <div class="support-box">
+            <h2>公営ギャンブル等との付き合いに不安を感じたら</h2>
+            <p>
+              相談や情報提供を行っている支援窓口があります。
+              「今すぐ困っているわけではない」という段階でも利用できます。
+              診断結果に関わらず、違和感を感じられたら下のサイトを参考にしてください。
+            </p>
+    
+            <ul class="support-links">
+              <li><a href="https://www.ncasa-japan.jp/" target="_blank" rel="noopener">依存症相談ナビ（厚生労働省）</a></li>
+              <li><a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000149274.html" target="_blank" rel="noopener">ギャンブル等依存症に関する情報（厚生労働省）</a></li>
+            </ul>
+    
+            <p class="support-note">
+              ※ 外部サイトへ移動します。匿名・無料で利用できる窓口もあります。
+            </p>
+          </div>
+        `;
 
-        <div class="map-overlay">
-          <div class="dot" id="dot"></div>
-
-          <div class="tick-x" style="left:25%; bottom:-20px;">25%</div>
-          <div class="tick-x" style="left:50%; bottom:-20px;">50%</div>
-          <div class="tick-x" style="left:75%; bottom:-20px;">75%</div>
-
-          <div class="tick-y" style="left:-34px; bottom:25%;">25%</div>
-          <div class="tick-y" style="left:-34px; bottom:50%;">50%</div>
-          <div class="tick-y" style="left:-34px; bottom:75%;">75%</div>
-
-          <div class="y-axis">依存度（低 → 高）</div>
-        </div>
-
-        <div class="x-axis">使用時間（少 → 多）</div>
-      </div>
-
-      <div class="comment">${comments[quadrant]}</div>
-
-      <div class="detail-area">
-        <button class="detail-button" onclick="location.href='criteria.html'">
-          各設問の診断基準・点数配分を詳しく見る
-        </button>
-        <p class="medical-note">
-          ※ 本診断は医療診断ではありません。あくまで自己理解のための参考情報です。
-        </p>
-      </div>
-
-      <div class="support-box">
-        <h2>公営ギャンブル等との付き合いに不安を感じたら</h2>
-        <p>
-          診断結果に関わらず、相談や情報提供を行っている支援窓口があります。
-          「今すぐ困っているわけではない」という段階でも利用できます。
-        </p>
-
-        <ul class="support-links">
-          <li><a href="https://www.ncasa-japan.jp/" target="_blank" rel="noopener">依存症相談ナビ（厚生労働省）</a></li>
-          <li><a href="https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/0000149274.html" target="_blank" rel="noopener">ギャンブル等依存症に関する情報（厚生労働省）</a></li>
-          
-        </ul>
-
-        <p class="support-note">
-          ※ 外部サイトへ移動します。匿名・無料で利用できる窓口もあります。
-        </p>
-      </div>
-    `;
-
+        // 赤丸の表示
         const dot = document.getElementById("dot");
         dot.style.left = `${xPercent}%`;
         dot.style.bottom = `${yPercent}%`;
+
+        // 現在位置の象限を赤枠で強調
+        const activeQuadrant = document.getElementById(`q${quadrant}`);
+        if (activeQuadrant) {
+            activeQuadrant.classList.add("active-quadrant");
+        }
+
     </script>
+
 </body>
 
 </html>

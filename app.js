@@ -14,12 +14,12 @@ const questions = [
     {
         text: "公営ギャンブル等をしていること、およびその結果について、家族や周囲の人に事実と違う説明をしたことはありますか？",
         weight: 3,
-        image: "images/q01.png"
+        image: "images/q01.jpg"
     },
     {
         text: "公営ギャンブルなどでの損失分を取り返そうとして、別の日に続けて参加したことはありますか？",
         weight: 3,
-        image: "images/q02.png"
+        image: "images/q02.jpg"
     },
 
     // ★重要質問
@@ -94,14 +94,32 @@ showQuestion();
 // ===============================
 // ▼ 質問表示
 // ===============================
+const imageArea = document.getElementById("imageArea");
 function showQuestion() {
     if (currentIndex >= questions.length) {
         showTimeInput();
         return;
     }
 
-    // ※ 現状はテキストのみ表示（画像はcheck.html側で対応可能）
-    questionBox.textContent = questions[currentIndex].text;
+    const q = questions[currentIndex];
+
+    // 質問文
+    questionBox.textContent = q.text;
+
+    // 画像
+    imageArea.innerHTML = `
+        <img 
+            src="${q.image}" 
+            alt="質問画像"
+            style="
+                width:100%;
+                max-width:320px;
+                margin:20px auto 0;
+                display:block;
+                border-radius:8px;
+            "
+        >
+    `;
 }
 
 // ===============================

@@ -18,15 +18,29 @@
             text-align: center;
         }
 
+        /* ===== 質問ボックス ===== */
         #questionBox {
             background: white;
-            padding: 20px;
+            padding: 24px;
             margin: 30px 0;
             border-radius: 8px;
             font-size: 18px;
             text-align: center;
         }
 
+        .question-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .question-text {
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        /* ===== ボタン ===== */
         .buttons {
             display: flex;
             gap: 20px;
@@ -38,6 +52,7 @@
             font-size: 18px;
             border: none;
             border-radius: 8px;
+            cursor: pointer;
         }
 
         #yesBtn {
@@ -50,52 +65,52 @@
             color: white;
         }
 
+        /* ===== 進捗 ===== */
         .progress {
             margin-top: 20px;
             text-align: center;
             font-size: 14px;
             color: #555;
         }
+
+        .layout {
+            max-width: 760px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+        }
     </style>
 </head>
 
+
+
 <body>
 
-    <h1>公営ギャンブル等との距離 セルフチェック</h1>
+    <div class="layout">
+        <h1>公営ギャンブル等との距離 セルフチェック</h1>
 
-    <p style="text-align:center;">
-        以下の質問に、<br>
-        <strong>直感で「はい / いいえ」</strong>で答えてください。
-    </p>
+        <p style="text-align:center;">
+            以下の質問に、<br>
+            <strong>直感で「はい / いいえ」</strong>で答えてください。
+        </p>
 
-    <div id="questionBox">
-        質問が表示されます
+        <div id="questionBox">
+            質問が表示されます
+        </div>
+
+        <div class="buttons">
+            <button id="yesBtn">はい</button>
+            <button id="noBtn">いいえ</button>
+        </div>
+
+        <!-- ★ 画像表示エリア -->
+        <div id="imageArea"></div>
+
+        <div class="progress" id="progressText"></div>
     </div>
-
-    <div class="buttons">
-        <button id="yesBtn">はい</button>
-        <button id="noBtn">いいえ</button>
-    </div>
-
-    <div class="progress" id="progressText"></div>
 
     <script src="app.js"></script>
-
-    <script>
-        const progressText = document.getElementById("progressText");
-
-        const originalShowQuestion = showQuestion;
-        showQuestion = function () {
-            originalShowQuestion();
-            if (phase === "question") {
-                progressText.textContent =
-                    `質問 ${currentIndex + 1} / ${questions.length}`;
-            } else {
-                progressText.textContent = "";
-            }
-        };
-    </script>
-
 </body>
 
 </html>
