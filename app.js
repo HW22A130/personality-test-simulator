@@ -89,12 +89,16 @@ const noBtn = document.getElementById("noBtn");
 // ===============================
 // ▼ 初期表示
 // ===============================
-showQuestion();
+document.addEventListener("DOMContentLoaded", () => {
+    showQuestion();
+});
 
 // ===============================
 // ▼ 質問表示
 // ===============================
 const imageArea = document.getElementById("imageArea");
+const progressText = document.getElementById("progressText");
+
 function showQuestion() {
     if (currentIndex >= questions.length) {
         showTimeInput();
@@ -104,22 +108,30 @@ function showQuestion() {
     const q = questions[currentIndex];
 
     // 質問文
-    questionBox.textContent = q.text;
-
-    // 画像
-    imageArea.innerHTML = `
-        <img 
-            src="${q.image}" 
-            alt="質問画像"
-            style="
-                width:100%;
-                max-width:320px;
-                margin:20px auto 0;
-                display:block;
-                border-radius:8px;
-            "
-        >
+    questionBox.innerHTML = `
+        <div class="question-text">
+            ${q.text}
+        </div>
     `;
+
+    // 画像（中央寄せ）
+    imageArea.innerHTML = `
+    <img
+        src="${q.image}"
+        alt="質問画像"
+        style="
+            display:block;
+            margin:24px auto 0;
+            width:100%;
+            max-width:520px;
+            border-radius:10px;
+        "
+    >
+`;
+
+    // 進捗表示
+    progressText.textContent =
+        `質問 ${currentIndex + 1} / ${questions.length}`;
 }
 
 // ===============================
