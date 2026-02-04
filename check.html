@@ -84,10 +84,32 @@
         #imageArea {
             text-align: center;
         }
+
+        /* ===== ホームに戻るボタン ===== */
+        .home-area {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .home-button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            max-width: 280px;
+            margin: 0 auto;
+            text-align: center;
+            background: #1976d2;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .home-button:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
-
-
 
 <body>
 
@@ -112,6 +134,11 @@
         <div id="imageArea"></div>
 
         <div class="progress" id="progressText"></div>
+
+        <!-- ★ 追加：ホームに戻る -->
+        <div class="home-area">
+            <a class="home-button" href="index.html">▶ ホームに戻る</a>
+        </div>
     </div>
 
     <script src="app.js"></script>
