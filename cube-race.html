@@ -63,6 +63,7 @@
             width: 100%;
             padding: 10px;
             font-size: 14px;
+            box-sizing: border-box;
         }
 
         button {
@@ -85,6 +86,37 @@
             padding: 15px;
             background: #f1f3f5;
             border-radius: 6px;
+        }
+
+        /* =========================
+           賭けポイント：操作ボタン
+        ========================= */
+        .bet-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .bet-controls button {
+            width: auto;
+            padding: 10px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        .bet-controls .bet-btn {
+            background: #607d8b;
+            color: #fff;
+            flex: 0 0 auto;
+            min-width: 88px;
+        }
+
+        .bet-controls .bet-btn:hover {
+            opacity: 0.9;
+        }
+
+        .bet-controls input {
+            flex: 1 1 auto;
         }
 
         /* =========================
@@ -126,6 +158,28 @@
         .runner.lose {
             opacity: 0.6;
         }
+
+        /* =========================
+           下部ナビ（ホームに戻る）
+        ========================= */
+        .nav-area {
+            margin-top: 22px;
+            text-align: center;
+        }
+
+        .home-button {
+            display: inline-block;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #1976d2;
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .home-button:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 
@@ -150,8 +204,17 @@
         </div>
 
         <div class="form-group">
-            <label>賭けポイント</label>
-            <input type="number" id="betAmount" value="1000" min="100">
+            <label>賭けポイント（100ずつ）</label>
+
+            <!-- ★ 操作しやすいようにボタン追加 -->
+            <div class="bet-controls">
+                <button type="button" class="bet-btn" onclick="adjustBet(-100)">−100</button>
+
+                <!-- ★ 100刻みに変更：step="100" -->
+                <input type="number" id="betAmount" value="1000" min="100" step="100">
+
+                <button type="button" class="bet-btn" onclick="adjustBet(100)">＋100</button>
+            </div>
         </div>
 
         <button onclick="buyTicket()">この内容で賭ける</button>
@@ -160,7 +223,24 @@
         <div class="race-track" id="raceTrack"></div>
 
         <div class="result" id="resultArea"></div>
+
+        <!-- ★ ホームに戻る -->
+        <div class="nav-area">
+            <a class="home-button" href="index.html">▶ ホームに戻る</a>
+        </div>
     </div>
+
+    <script>
+        // 賭けポイントを100刻みで増減（最低100まで）
+        function adjustBet(delta) {
+            const input = document.getElementById("betAmount");
+            const current = Number(input.value) || 0;
+            const next = Math.max(100, current + delta);
+
+            // 100刻みに丸める（念のため）
+            input.value = Math.round(next / 100) * 100;
+        }
+    </script>
 
     <script src="cube-race.js"></script>
 </body>
