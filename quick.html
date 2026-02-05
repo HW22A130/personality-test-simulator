@@ -168,16 +168,45 @@
         // ===============================
         const COST = 300;
         const WIN_RATE = 50; // 1 / 50
+        const SHOW_REFLECTION_AT = 20;
 
         let playCount = 0;
         let totalCost = 0;
         let winCount = 0;
+
+        let reflectionShown = false; // ★一度でも振り返りを出したか
+        let adminLogged = false;     // ★管理者ログは初回だけ
 
         const playBtn = document.getElementById("playBtn");
         const summary = document.getElementById("summary");
         const logBox = document.getElementById("logBox");
         const reflection = document.getElementById("reflection");
         const reflectionText = document.getElementById("reflectionText");
+
+        // ===============================
+        // ▼ 表示更新
+        // ===============================
+        function updateSummary() {
+            summary.innerHTML = `
+                回数：${playCount}回<br>
+                使用金額：${totalCost}円<br>
+                当たり回数：${winCount}回
+            `;
+        }
+
+        function updateReflection() {
+            reflectionText.innerHTML = `
+                わずか数分の操作でも、<br>
+                <strong>${totalCost}円</strong>を使用しています。<br><br>
+
+                隙間時間でのギャンブルは、<br>
+                「時間を使っている感覚」が薄いまま<br>
+                回数と金額が増えやすい特徴があります。<br><br>
+
+                この体験をもとに、<br>
+                自分にとって適切な距離を考えてみてください。
+            `;
+        }
 
         // ===============================
         // ▼ 実行
@@ -193,46 +222,37 @@
             log.textContent = `【${playCount}回目】${isWin ? "当たり！" : "はずれ"}`;
             logBox.prepend(log);
 
-            summary.innerHTML = `
-                回数：${playCount}回<br>
-                使用金額：${totalCost}円<br>
-                当たり回数：${winCount}回
-            `;
+            updateSummary();
 
-            if (playCount >= 20) {
-                finishExperience();
+            // ★ 20回到達したら、振り返りを表示（ただしボタンは無効化しない）
+            if (playCount >= SHOW_REFLECTION_AT) {
+                reflectionShown = true;
+                reflection.style.display = "block";
+                updateReflection();
+
+                // ★ 管理者用ログ（初回だけ）
+                if (!adminLogged) {
+                    const logs = JSON.parse(localStorage.getItem("adminLogs")) || [];
+                    logs.push({
+                        type: "quick_experience",
+                        playCount,
+                        totalCost,
+                        winCount,
+                        finishedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem("adminLogs", JSON.stringify(logs));
+                    adminLogged = true;
+                }
+            }
+
+            // ★ 振り返り表示後も続ける場合、振り返り文を現在値で更新し続ける
+            if (reflectionShown) {
+                updateReflection();
             }
         };
 
-        // ===============================
-        // ▼ 体験終了
-        // ===============================
-        function finishExperience() {
-            playBtn.disabled = true;
-            reflection.style.display = "block";
-
-            reflectionText.innerHTML = `
-                わずか数分の操作でも、<br>
-                <strong>${totalCost}円</strong>を使用しています。<br><br>
-
-                隙間時間でのギャンブルは、<br>
-                「時間を使っている感覚」が薄いまま<br>
-                回数と金額が増えやすい特徴があります。<br><br>
-
-                この体験をもとに、<br>
-                自分にとって適切な距離を考えてみてください。
-            `;
-
-            // 管理者用ログ
-            const logs = JSON.parse(localStorage.getItem("adminLogs")) || [];
-            logs.push({
-                type: "quick_experience",
-                playCount,
-                totalCost,
-                finishedAt: new Date().toISOString()
-            });
-            localStorage.setItem("adminLogs", JSON.stringify(logs));
-        }
+        // 初期表示
+        updateSummary();
     </script>
 
 </body>

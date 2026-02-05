@@ -77,20 +77,14 @@
             cursor: pointer;
         }
 
-        button:hover {
-            opacity: 0.9;
+        .info-box {
+            background: #eef2f5;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
 
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f1f3f5;
-            border-radius: 6px;
-        }
-
-        /* =========================
-           賭けポイント：操作ボタン
-        ========================= */
         .bet-controls {
             display: flex;
             gap: 10px;
@@ -102,30 +96,13 @@
             padding: 10px 12px;
             font-size: 14px;
             border-radius: 6px;
-        }
-
-        .bet-controls .bet-btn {
             background: #607d8b;
             color: #fff;
-            flex: 0 0 auto;
-            min-width: 88px;
         }
-
-        .bet-controls .bet-btn:hover {
-            opacity: 0.9;
-        }
-
-        .bet-controls input {
-            flex: 1 1 auto;
-        }
-
-        /* =========================
-           レース表示（簡易演出）
-        ========================= */
 
         .race-track {
             position: relative;
-            height: 260px;
+            height: 200px;
             margin-top: 30px;
             border: 2px solid #ccc;
             border-radius: 8px;
@@ -143,42 +120,26 @@
             font-size: 12px;
             line-height: 26px;
             background: #90caf9;
-            transition: transform 2.2s ease-out;
+            transition: transform 2s ease-out;
         }
 
-        .runner:nth-child(odd) {
-            background: #a5d6a7;
-        }
-
-        .runner.win {
-            background: #ffcc80;
-            font-weight: bold;
-        }
-
-        .runner.lose {
-            opacity: 0.6;
-        }
-
-        /* =========================
-           下部ナビ（ホームに戻る）
-        ========================= */
-        .nav-area {
-            margin-top: 22px;
-            text-align: center;
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f3f5;
+            border-radius: 6px;
         }
 
         .home-button {
-            display: inline-block;
+            display: block;
+            margin: 30px auto 0;
             padding: 12px 16px;
             border-radius: 8px;
             background: #1976d2;
             color: #fff;
             text-decoration: none;
-            font-size: 14px;
-        }
-
-        .home-button:hover {
-            opacity: 0.9;
+            text-align: center;
+            max-width: 220px;
         }
     </style>
 </head>
@@ -187,8 +148,19 @@
     <div class="layout">
         <h1>キューブレース体験</h1>
 
+        <button onclick="toggleGuide()">▶ 遊び方を見る</button>
+
+        <div class="info-box" id="guideBox" style="display:none;">
+            ・4つのキューブの中から順位を予想します<br>
+            ・単勝：1着を当てる<br>
+            ・複勝：選んだキューブが3着以内<br>
+            ・ワイド：選んだ2つが両方3着以内<br>
+            ・連複：選んだ2つが1・2着（順不同）<br>
+            ・連単：1着と2着を順番通り当てる
+        </div>
+
         <div class="point">
-            所持ポイント：<span id="point">---</span>P
+            所持ポイント：<span id="point">10000</span>P
         </div>
 
         <h2>キューブを選ぶ</h2>
@@ -200,49 +172,170 @@
                 <option value="単勝">単勝</option>
                 <option value="複勝">複勝</option>
                 <option value="ワイド">ワイド</option>
+                <option value="連複">連複</option>
+                <option value="連単">連単</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>賭けポイント（100ずつ）</label>
+            <label>想定オッズ</label>
+            <div class="info-box" id="oddsBox">---</div>
+        </div>
 
-            <!-- ★ 操作しやすいようにボタン追加 -->
+        <div class="form-group">
+            <label>賭けポイント</label>
             <div class="bet-controls">
-                <button type="button" class="bet-btn" onclick="adjustBet(-100)">−100</button>
-
-                <!-- ★ 100刻みに変更：step="100" -->
+                <button onclick="adjustBet(-100)">−100</button>
                 <input type="number" id="betAmount" value="1000" min="100" step="100">
-
-                <button type="button" class="bet-btn" onclick="adjustBet(100)">＋100</button>
+                <button onclick="adjustBet(100)">＋100</button>
             </div>
         </div>
 
         <button onclick="buyTicket()">この内容で賭ける</button>
 
-        <!-- レース可視化エリア -->
         <div class="race-track" id="raceTrack"></div>
-
         <div class="result" id="resultArea"></div>
 
-        <!-- ★ ホームに戻る -->
-        <div class="nav-area">
-            <a class="home-button" href="index.html">▶ ホームに戻る</a>
-        </div>
+        <a class="home-button" href="index.html">▶ ホームに戻る</a>
     </div>
 
     <script>
-        // 賭けポイントを100刻みで増減（最低100まで）
+        const cubeList = document.getElementById("cubeList");
+        const pointEl = document.getElementById("point");
+        const resultArea = document.getElementById("resultArea");
+        const oddsBox = document.getElementById("oddsBox");
+        const betTypeEl = document.getElementById("betType");
+
+        let points = 10000;
+        let selected = [];
+        let raceCount = 0;
+        let totalBet = 0;
+        let currentOdds = 1;
+
+        function renderCubes() {
+            cubeList.innerHTML = "";
+            for (let i = 1; i <= 4; i++) {
+                const div = document.createElement("div");
+                div.className = "cube";
+                div.textContent = "キューブ" + i;
+                div.onclick = () => toggleSelect(i, div);
+                cubeList.appendChild(div);
+            }
+        }
+
+        function toggleSelect(num, el) {
+            if (selected.includes(num)) {
+                selected = selected.filter(n => n !== num);
+                el.classList.remove("selected");
+            } else {
+                selected.push(num);
+                el.classList.add("selected");
+            }
+            updateOdds();
+        }
+
+        function calcOdds(type) {
+            switch (type) {
+                case "単勝": return (1.8 + Math.random()).toFixed(1);
+                case "複勝": return (1.2 + Math.random()).toFixed(1);
+                case "ワイド": return (2.5 + Math.random() * 2).toFixed(1);
+                case "連複": return (4 + Math.random() * 3).toFixed(1);
+                case "連単": return (8 + Math.random() * 5).toFixed(1);
+                default: return 2;
+            }
+        }
+
+        function updateOdds() {
+            const type = betTypeEl.value;
+            currentOdds = Number(calcOdds(type));
+            oddsBox.textContent = `×${currentOdds}`;
+        }
+
+        betTypeEl.addEventListener("change", updateOdds);
+
         function adjustBet(delta) {
             const input = document.getElementById("betAmount");
-            const current = Number(input.value) || 0;
-            const next = Math.max(100, current + delta);
-
-            // 100刻みに丸める（念のため）
+            const next = Math.max(100, Number(input.value) + delta);
             input.value = Math.round(next / 100) * 100;
         }
-    </script>
 
-    <script src="cube-race.js"></script>
+        function buyTicket() {
+            const bet = Number(document.getElementById("betAmount").value);
+            if (bet > points) {
+                alert("ポイント不足");
+                return;
+            }
+
+            points -= bet;
+            totalBet += bet;
+            raceCount++;
+            pointEl.textContent = points;
+
+            const finish = [1, 2, 3, 4].sort(() => Math.random() - 0.5);
+
+            let win = false;
+            const type = betTypeEl.value;
+
+            if (type === "単勝") {
+                win = selected.includes(finish[0]);
+            }
+            if (type === "複勝") {
+                win = selected.some(n => finish.slice(0, 3).includes(n));
+            }
+            if (type === "ワイド") {
+                win = selected.length >= 2 &&
+                    selected.every(n => finish.slice(0, 3).includes(n));
+            }
+            if (type === "連複") {
+                win = selected.length >= 2 &&
+                    selected.includes(finish[0]) &&
+                    selected.includes(finish[1]);
+            }
+            if (type === "連単") {
+                win = selected[0] === finish[0] &&
+                    selected[1] === finish[1];
+            }
+
+            let resultText = `結果：${finish.join(" → ")}<br>`;
+
+            if (win) {
+                const gain = Math.floor(bet * currentOdds);
+                points += gain;
+                resultText += `的中！ +${gain}P`;
+            } else {
+                resultText += "はずれ";
+            }
+
+            pointEl.textContent = points;
+            resultArea.innerHTML = resultText;
+
+            updateOdds();
+
+            if (raceCount >= 5) {
+                resultArea.innerHTML += `
+                <hr>
+                <strong>5レース終了</strong><br>
+                使用合計：${totalBet}P<br><br>
+                短時間で何度も賭けられる仕組みは、
+                気づかないうちに使用金額が増えてしまう
+                危険性があります。
+                実際の競馬の発券場では次レースまで時間が空き
+                投票するかを考えられますが、オンラインでは
+                その感覚が薄まります。
+                １レースごとに投資した金額を確認するなどし、
+                自分なりの付き合い方を目指してください。
+                `;
+            }
+        }
+
+        function toggleGuide() {
+            const box = document.getElementById("guideBox");
+            box.style.display = box.style.display === "none" ? "block" : "none";
+        }
+
+        renderCubes();
+        updateOdds();
+    </script>
 </body>
 
 </html>

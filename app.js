@@ -14,12 +14,12 @@ const questions = [
     {
         text: "公営ギャンブル等をしていること、およびその結果について、家族や周囲の人に事実と違う説明をしたことはありますか？",
         weight: 3,
-        image: "images/q01.jpg"
+        image: "images/q01.png"
     },
     {
         text: "公営ギャンブルなどでの損失分を取り返そうとして、別の日に続けて参加したことはありますか？",
         weight: 3,
-        image: "images/q02.jpg"
+        image: "images/q02.png"
     },
 
     // ★重要質問
@@ -46,12 +46,12 @@ const questions = [
         image: "images/q06.png"
     },
     {
-        text: "公営ギャンブル等をやめたいと思いながら、続けてしまったことはありますか？",
+        text: "自分は公営ギャンブル等をやめられないとわかっているが、やめたいと思ったことはありますか？",
         weight: 1,
         image: "images/q07.png"
     },
     {
-        text: "公営ギャンブル等に使った時間や金額を、周囲の人に伝えなかったことはありますか？",
+        text: "公営ギャンブル等に使った時間や金額を聞かれた際に、周囲の人に正しく伝えなかったことはありますか？",
         weight: 1,
         image: "images/q08.png"
     },
