@@ -114,19 +114,19 @@ function showQuestion() {
         </div>
     `;
 
-    // 画像（中央寄せ）
+    // 画像（中央寄せ・少し大きめ）
     imageArea.innerHTML = `
     <img
         src="${q.image}"
         alt="質問画像"
         style="
-            display:block;
-            margin:24px auto 0;
-            width:100%;
-            
-            border-radius:10px;
-        "
-    >
+        display:block;
+        margin:24px auto 0;
+        width:100%;
+        max-width:740px;
+        border-radius:12px;
+    "
+>
 `;
 
     // 進捗表示
