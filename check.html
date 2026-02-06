@@ -18,7 +18,6 @@
             text-align: center;
         }
 
-        /* ===== 質問ボックス ===== */
         #questionBox {
             background: white;
             padding: 24px;
@@ -28,19 +27,6 @@
             text-align: center;
         }
 
-        .question-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 16px;
-        }
-
-        .question-text {
-            font-size: 17px;
-            line-height: 1.6;
-        }
-
-        /* ===== ボタン ===== */
         .buttons {
             display: flex;
             gap: 20px;
@@ -65,7 +51,6 @@
             color: white;
         }
 
-        /* ===== 進捗 ===== */
         .progress {
             margin-top: 20px;
             text-align: center;
@@ -81,18 +66,20 @@
             border-radius: 8px;
         }
 
-        /* ===== 質問画像：大きめ表示 ===== */
+        #imageArea {
+            text-align: center;
+        }
+
+        /* ★追加：質問画像を大きくする */
         #imageArea img {
             width: 100%;
             max-width: 720px;
-            /* ← ここを大きくする（例：760pxでもOK） */
             height: auto;
             display: block;
             margin: 18px auto 0;
             border-radius: 10px;
         }
 
-        /* ===== ホームに戻るボタン ===== */
         .home-area {
             margin-top: 28px;
             text-align: center;
@@ -137,12 +124,10 @@
             <button id="noBtn">いいえ</button>
         </div>
 
-        <!-- ★ 画像表示エリア -->
         <div id="imageArea"></div>
 
         <div class="progress" id="progressText"></div>
 
-        <!-- ★ 追加：ホームに戻る -->
         <div class="home-area">
             <a class="home-button" href="index.html">▶ ホームに戻る</a>
         </div>
