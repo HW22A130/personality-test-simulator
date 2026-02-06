@@ -123,7 +123,7 @@ function showQuestion() {
             display:block;
             margin:24px auto 0;
             width:100%;
-            max-width:520px;
+            
             border-radius:10px;
         "
     >
