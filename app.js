@@ -68,7 +68,7 @@ const questions = [
     {
         text: "公営ギャンブル等でできた借金返済のために、さらにお金を借りたことはありますか？",
         weight: 2,
-        image: "images/q11.png"
+        image: ""
     }
 ];
 
