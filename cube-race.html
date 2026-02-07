@@ -32,7 +32,6 @@
             margin-bottom: 20px;
         }
 
-        /* ★ 追加：マイナスになったら赤く見せる */
         .point.negative {
             color: #d32f2f;
         }
@@ -57,6 +56,34 @@
         .cube.selected {
             border-color: #d32f2f;
             background: #fdecea;
+        }
+
+        .cube small {
+            display: block;
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .order {
+            display: inline-block;
+            margin-top: 6px;
+            background: #d32f2f;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        .fav {
+            display: inline-block;
+            margin-top: 6px;
+            background: #1976d2;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 6px;
         }
 
         .form-group {
@@ -98,7 +125,6 @@
 
         .bet-controls button {
             flex: 1;
-            /* ← 追加：左右同じ幅にする */
             padding: 10px 12px;
             font-size: 14px;
             border-radius: 6px;
@@ -108,7 +134,6 @@
 
         .bet-controls input {
             flex: 2;
-            /* ← 中央を少し広めに */
         }
 
         .race-track {
@@ -181,14 +206,14 @@
             ・複勝：選んだキューブが3着以内<br>
             ・ワイド：選んだ2つが両方3着以内<br>
             ・連複：選んだ2つが1・2着（順不同）<br>
-            ・連単：1着と2着を順番通り当てる
+            ・連単：1着と2着を順番通り当てる（選んだ順が重要）
         </div>
 
         <div class="point" id="pointWrap">
             所持ポイント：<span id="point">10000</span>P
         </div>
 
-        <h2>キューブを選ぶ</h2>
+        <h2>キューブを選ぶ（各キューブの単勝オッズ）</h2>
         <div class="cube-list" id="cubeList"></div>
 
         <div class="form-group">
@@ -203,7 +228,7 @@
         </div>
 
         <div class="form-group">
-            <label>想定オッズ</label>
+            <label>想定オッズ（選択内容に連動）</label>
             <div class="info-box" id="oddsBox">---</div>
         </div>
 
@@ -238,77 +263,173 @@
         let selected = [];
         let raceCount = 0;
         let totalBet = 0;
-        let currentOdds = 1;
+        let currentOdds = null; // ← 連動オッズ
         let isRacing = false;
+
+        // 各キューブの単勝オッズ（固定）
+        let cubeOdds = {}; // {1:1.8, 2:2.5, ...}
+        let favoriteCube = 1;
 
         function updatePointView() {
             pointEl.textContent = points;
             pointWrap.classList.toggle("negative", points < 0);
         }
 
+        function shuffle(arr) {
+            return arr.slice().sort(() => Math.random() - 0.5);
+        }
+
+        // 単勝オッズを初期生成（ページ読み込み時に固定）
+        function initCubeOdds() {
+            const base = [1.6, 2.3, 3.2, 4.6]; // それっぽいレンジ
+            const shuffled = shuffle(base);
+
+            cubeOdds = {};
+            for (let i = 1; i <= 4; i++) {
+                cubeOdds[i] = Number(shuffled[i - 1].toFixed(1));
+            }
+
+            favoriteCube = Object.keys(cubeOdds)
+                .map(n => Number(n))
+                .sort((a, b) => cubeOdds[a] - cubeOdds[b])[0];
+        }
+
+        function cubeLabelHTML(n) {
+            const orderIndex = selected.indexOf(n); // 選択順
+            const isFav = (n === favoriteCube);
+            const odds = cubeOdds[n];
+
+            let tags = "";
+            if (orderIndex !== -1) tags += `<span class="order">${orderIndex + 1}番目</span>`;
+            if (isFav) tags += `<span class="fav">1番人気</span>`;
+
+            return `
+                キューブ${n}
+                <small>単勝オッズ ×${odds}</small>
+                ${tags ? `<div style="margin-top:6px;">${tags}</div>` : ""}
+            `;
+        }
+
         function renderCubes() {
             cubeList.innerHTML = "";
             selected = [];
+
             for (let i = 1; i <= 4; i++) {
                 const div = document.createElement("div");
                 div.className = "cube";
-                div.textContent = "キューブ" + i;
-                div.onclick = () => toggleSelect(i, div);
+                div.dataset.num = i;
+                div.innerHTML = cubeLabelHTML(i);
+                div.onclick = () => toggleSelect(i);
                 cubeList.appendChild(div);
             }
         }
 
-        function toggleSelect(num, el) {
+        function refreshCubeView() {
+            [...cubeList.children].forEach(c => {
+                const n = Number(c.dataset.num);
+                c.classList.toggle("selected", selected.includes(n));
+                c.innerHTML = cubeLabelHTML(n);
+            });
+        }
+
+        function needCountByType(type) {
+            return (type === "ワイド" || type === "連複" || type === "連単") ? 2 : 1;
+        }
+
+        function toggleSelect(num) {
             if (isRacing) return;
 
             if (selected.includes(num)) {
                 selected = selected.filter(n => n !== num);
-                el.classList.remove("selected");
             } else {
                 selected.push(num);
-                el.classList.add("selected");
             }
 
             const type = betTypeEl.value;
-            const need = (type === "ワイド" || type === "連複" || type === "連単") ? 2 : 1;
+            const need = needCountByType(type);
 
+            // 連単は順番が重要なので、選択順を維持しつつ最大2つ
             if (selected.length > need) {
-                const removed = selected.shift();
-                [...cubeList.children].forEach(c => {
-                    if (c.textContent === "キューブ" + removed) c.classList.remove("selected");
-                });
+                selected.shift(); // 先に選んだ方を外す
             }
 
+            refreshCubeView();
             updateOdds();
         }
 
-        function calcOdds(type) {
-            switch (type) {
-                case "単勝": return (1.4 + Math.random() * 0.8).toFixed(1);
-                case "複勝": return (1.1 + Math.random() * 0.5).toFixed(1);
-                case "ワイド": return (1.8 + Math.random() * 1.4).toFixed(1);
-                case "連複": return (2.8 + Math.random() * 2.0).toFixed(1);
-                case "連単": return (4.0 + Math.random() * 3.0).toFixed(1);
-                default: return "2.0";
+        // ★ここが修正ポイント：選択内容に連動してオッズを算出
+        function calcTicketOdds(type, selectedNums) {
+            const need = needCountByType(type);
+            if (selectedNums.length !== need) return null;
+
+            const a = cubeOdds[selectedNums[0]];
+            const b = need === 2 ? cubeOdds[selectedNums[1]] : null;
+
+            // ざっくり「それっぽい」レンジになるように係数を調整（教材用）
+            if (type === "単勝") {
+                return a;
             }
+            if (type === "複勝") {
+                // 単勝より低く：1.1〜1.9くらいに寄せる
+                return Math.max(1.1, Number((a * 0.65).toFixed(1)));
+            }
+            if (type === "ワイド") {
+                // 2頭のオッズに比例して少し上がる
+                return Number(((a + b) * 0.55).toFixed(1)); // 1.8〜3.2 付近
+            }
+            if (type === "連複") {
+                // ワイドより少し上
+                return Number(((a + b) * 0.85).toFixed(1)); // 2.8〜4.8 付近
+            }
+            if (type === "連単") {
+                // 順番あり：さらに上（選択順が意味を持つ）
+                return Number(((a * b) * 0.55).toFixed(1)); // 4.0〜7.0 付近に寄せる
+            }
+            return null;
+        }
+
+        function formatBetInfo(type) {
+            if (type === "単勝" || type === "複勝") {
+                return `${type}：キューブ${selected[0]}`;
+            }
+            if (type === "連単") {
+                return `${type}：1着→キューブ${selected[0]} / 2着→キューブ${selected[1]}（選んだ順）`;
+            }
+            return `${type}：キューブ${selected[0]} ＆ キューブ${selected[1]}`;
         }
 
         function updateOdds() {
             const type = betTypeEl.value;
-            currentOdds = Number(calcOdds(type));
-            oddsBox.textContent = `×${currentOdds}`;
 
-            const need = (type === "ワイド" || type === "連複" || type === "連単") ? 2 : 1;
+            // 券種変更時は必要数に合わせる
+            const need = needCountByType(type);
             if (selected.length > need) {
                 while (selected.length > need) selected.shift();
-                [...cubeList.children].forEach(c => {
-                    const num = Number(c.textContent.replace("キューブ", ""));
-                    c.classList.toggle("selected", selected.includes(num));
-                });
+                refreshCubeView();
             }
+
+            const odds = calcTicketOdds(type, selected);
+
+            if (odds == null) {
+                currentOdds = null;
+                const msgNeed = needCountByType(type);
+                oddsBox.textContent = `キューブを${msgNeed}つ選ぶと表示されます`;
+                return;
+            }
+
+            currentOdds = odds;
+
+            // 「どのオッズがどの買い目か」が分かる表示にする
+            oddsBox.innerHTML = `
+                <div><strong>${formatBetInfo(type)}</strong></div>
+                <div style="margin-top:6px;">想定オッズ：<strong>×${currentOdds}</strong></div>
+            `;
         }
 
-        betTypeEl.addEventListener("change", updateOdds);
+        betTypeEl.addEventListener("change", () => {
+            updateOdds();
+            refreshCubeView();
+        });
 
         function adjustBet(delta) {
             const input = document.getElementById("betAmount");
@@ -321,13 +442,9 @@
             box.style.display = box.style.display === "none" ? "block" : "none";
         }
 
-        function shuffle(arr) {
-            return arr.slice().sort(() => Math.random() - 0.5);
-        }
-
         function ensureSelectionValidOrAlert() {
             const type = betTypeEl.value;
-            const need = (type === "ワイド" || type === "連複" || type === "連単") ? 2 : 1;
+            const need = needCountByType(type);
             if (selected.length !== need) {
                 alert(`この券種は「${need}つ」キューブを選んでください`);
                 return false;
@@ -335,6 +452,7 @@
             return true;
         }
 
+        // ★スマホ安定：left を rAF2回で動かす
         function moveRunnerLeft(runnerEl, targetLeftPx, durationMs) {
             runnerEl.style.transition = "none";
             runnerEl.style.left = "10px";
@@ -370,7 +488,16 @@
 
             if (!ensureSelectionValidOrAlert()) return;
 
-            // ★ 修正：ポイント不足でも賭けられる（上限なし）
+            // オッズがまだ計算できていない場合の保険
+            if (currentOdds == null) {
+                updateOdds();
+                if (currentOdds == null) {
+                    alert("想定オッズが未確定です。キューブの選択を確認してください。");
+                    return;
+                }
+            }
+
+            // ポイント不足でも賭けられる（上限なし）
             points -= bet;
             totalBet += bet;
             raceCount++;
@@ -379,9 +506,10 @@
             isRacing = true;
             betBtn.disabled = true;
 
-            const finish = shuffle([1, 2, 3, 4]);
+            const finish = shuffle([1, 2, 3, 4]); // 着順
             renderRaceRunners();
 
+            // ゴール位置計算
             const trackWidth = raceTrack.getBoundingClientRect().width;
             const goalLeft = Math.max(10, Math.floor(trackWidth - 72 - 16));
 
@@ -402,6 +530,7 @@
                 moveRunnerLeft(el, target, times[rankIndex]);
             });
 
+            // 勝敗判定
             let win = false;
             const type = betTypeEl.value;
 
@@ -413,7 +542,8 @@
 
             const showAfter = 2550;
             setTimeout(() => {
-                let resultText = `結果：${finish.join(" → ")}<br>`;
+                const betInfo = formatBetInfo(type);
+                let resultText = `${betInfo}<br>結果：${finish.join(" → ")}<br>`;
 
                 finish.forEach((cubeNum, idx) => {
                     const el = byNum[cubeNum];
@@ -425,14 +555,15 @@
                 if (win) {
                     const gain = Math.floor(bet * currentOdds);
                     points += gain;
-                    resultText += `的中！ +${gain}P（オッズ×${currentOdds}）`;
+                    resultText += `的中！ +${gain}P（想定オッズ×${currentOdds}）`;
                 } else {
-                    resultText += `はずれ（オッズ×${currentOdds}）`;
+                    resultText += `はずれ（想定オッズ×${currentOdds}）`;
                 }
 
                 updatePointView();
                 resultArea.innerHTML = resultText;
 
+                // レース後にオッズ再計算（同じ選択なら同じ値のまま）
                 updateOdds();
 
                 if (raceCount >= 5) {
@@ -455,10 +586,11 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            initCubeOdds();       // ★人気・単勝オッズ生成（固定）
             renderCubes();
-            updateOdds();
             renderRaceRunners();
             updatePointView();
+            updateOdds();         // ★初期表示で oddsBox を整える
         });
     </script>
 </body>
