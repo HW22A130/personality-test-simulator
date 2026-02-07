@@ -17,7 +17,6 @@
             --text: #222;
             --muted: #555;
             --primary: #1976d2;
-            /* ← ボタン色を統一 */
             --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             --radius: 10px;
         }
@@ -86,7 +85,6 @@
             color: var(--muted);
         }
 
-        /* ===== 2列レイアウト（PC/タブレット） ===== */
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -94,7 +92,6 @@
             align-items: start;
         }
 
-        /* ===== スマホは1列に戻す ===== */
         @media (max-width: 720px) {
             .layout {
                 padding: 16px;
@@ -105,7 +102,6 @@
             }
         }
 
-        /* ===== ドーナツ ===== */
         .donut {
             width: 160px;
             height: 160px;
@@ -122,7 +118,6 @@
             font-weight: bold;
         }
 
-        /* ===== ボタン（統一） ===== */
         .btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -163,7 +158,7 @@
         .muted {
             color: var(--muted);
             font-size: 14px;
-            margin: 6px 0 0;
+            margin: 8px 0 0;
         }
 
         .reset-wrap {
@@ -174,6 +169,17 @@
             font-size: 13px;
             color: var(--muted);
             margin: 0 0 10px;
+        }
+
+        /* 追加：キーワード強調 */
+        .tagline {
+            font-size: 14px;
+            color: #333;
+            margin: 8px 0 0;
+        }
+
+        .tagline strong {
+            color: #0d47a1;
         }
     </style>
 </head>
@@ -187,7 +193,8 @@
 
         <div class="notice">
             このサイトは、医療的な診断を行うものではありません。<br>
-            公営ギャンブル等との距離感を測るための参考ツールです。
+            目的は「やめさせること」ではなく、<strong>レスポンシブルゲーミング（責任ある遊び方）</strong>の視点で、<br>
+            公営ギャンブル等との<strong>距離感</strong>を見直すきっかけを作ることです。
         </div>
 
         <div class="grid-2">
@@ -200,8 +207,12 @@
                 <div class="box">
                     <div class="section-title">
                         <h2>チェック</h2>
-                        <p>まずは距離感を確認</p>
+                        <p>まずは現状を可視化</p>
                     </div>
+
+                    <p class="tagline">
+                        「やる／やらない」ではなく、<strong>自分のラインを保てているか</strong>を確認します。
+                    </p>
 
                     <div class="btn-grid">
                         <a class="button" href="check.html">▶ 距離感チェッカー</a>
@@ -209,7 +220,7 @@
                     </div>
 
                     <p class="muted">
-                        ※ 診断結果が未入力の場合、結果ページでは案内が表示されます。
+                        ※ レスポンシブルゲーミングの第一歩は「現状の把握」です。
                     </p>
                 </div>
             </div>
@@ -220,25 +231,37 @@
                 <div class="box">
                     <div class="section-title">
                         <h2>分野</h2>
-                        <p>オンラインの危険性を“体験”</p>
+                        <p>“気づき”を体験</p>
                     </div>
+
+                    <p class="tagline">
+                        短時間で繰り返せる仕組みは、<strong>金額感覚が薄れやすい</strong>特徴があります。
+                    </p>
 
                     <div class="btn-grid">
                         <a class="button" href="cube-race.html">▶ オンライン競馬等の擬似体験</a>
                         <a class="button" href="quick.html">▶ オンライン宝くじの擬似体験</a>
                     </div>
+
+                    <p class="muted">
+                        ※ 体験後に「使った金額」「回数」を振り返るのも、責任ある遊び方の一部です。
+                    </p>
                 </div>
 
                 <!-- コラム -->
                 <div class="box">
                     <div class="section-title">
                         <h2>コラム</h2>
-                        <p>短い読み物（①〜③）</p>
+                        <p>考え方を整理する（①〜③）</p>
                     </div>
+
+                    <p class="tagline">
+                        レスポンシブルゲーミングの考え方を、<strong>言葉として持ち帰れる</strong>ようにまとめています。
+                    </p>
 
                     <div class="btn-grid">
                         <a class="button" href="stories/story-01.html">▶ ① 「ギャンブル」って何？</a>
-                        <a class="button" href="stories/story-02.html">▶ ② 公営ギャンブル等を楽しむ考え方</a>
+                        <a class="button" href="stories/story-02.html">▶ ② レスポンシブルゲーミングとは？</a>
                         <a class="button" href="stories/story-03.html">▶ ③ 体験を通した、距離感の作り方</a>
                         <a class="button" href="criteria.html">▶ 診断基準・点数配分（解説）</a>
                     </div>
@@ -260,7 +283,9 @@
         if (!result) {
             simpleBox.innerHTML = `
         <p><strong>診断結果が入力されていません</strong></p>
-        <p style="font-size:14px; color:#555;">「距離感チェッカー」から始められます。</p>
+        <p style="font-size:14px; color:#555; margin:8px 0 0;">
+          まずはセルフチェックで、現在の距離感を確認できます。
+        </p>
       `;
         } else {
             simpleBox.innerHTML = `
@@ -273,6 +298,9 @@
           <strong>公営ギャンブル等の割合</strong>
         </p>
         <a class="button" href="result.html">▶ 診断結果を詳しく見る</a>
+        <p class="muted" style="margin-top:10px;">
+          ※ 「自分のライン」を守れているか、結果ページで確認できます。
+        </p>
       `;
         }
 
