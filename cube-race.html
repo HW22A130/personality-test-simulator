@@ -32,6 +32,11 @@
             margin-bottom: 20px;
         }
 
+        /* ★ 追加：マイナスになったら赤く見せる */
+        .point.negative {
+            color: #d32f2f;
+        }
+
         .cube-list {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -92,12 +97,18 @@
         }
 
         .bet-controls button {
-            width: auto;
+            flex: 1;
+            /* ← 追加：左右同じ幅にする */
             padding: 10px 12px;
             font-size: 14px;
             border-radius: 6px;
             background: #607d8b;
             color: #fff;
+        }
+
+        .bet-controls input {
+            flex: 2;
+            /* ← 中央を少し広めに */
         }
 
         .race-track {
@@ -173,7 +184,7 @@
             ・連単：1着と2着を順番通り当てる
         </div>
 
-        <div class="point">
+        <div class="point" id="pointWrap">
             所持ポイント：<span id="point">10000</span>P
         </div>
 
@@ -216,6 +227,7 @@
     <script>
         const cubeList = document.getElementById("cubeList");
         const pointEl = document.getElementById("point");
+        const pointWrap = document.getElementById("pointWrap");
         const resultArea = document.getElementById("resultArea");
         const oddsBox = document.getElementById("oddsBox");
         const betTypeEl = document.getElementById("betType");
@@ -228,6 +240,11 @@
         let totalBet = 0;
         let currentOdds = 1;
         let isRacing = false;
+
+        function updatePointView() {
+            pointEl.textContent = points;
+            pointWrap.classList.toggle("negative", points < 0);
+        }
 
         function renderCubes() {
             cubeList.innerHTML = "";
@@ -252,12 +269,10 @@
                 el.classList.add("selected");
             }
 
-            // 券種に応じて選択数を制限
             const type = betTypeEl.value;
             const need = (type === "ワイド" || type === "連複" || type === "連単") ? 2 : 1;
 
             if (selected.length > need) {
-                // 余分に選んだものを外す（先に選んだ方から外す）
                 const removed = selected.shift();
                 [...cubeList.children].forEach(c => {
                     if (c.textContent === "キューブ" + removed) c.classList.remove("selected");
@@ -268,13 +283,12 @@
         }
 
         function calcOdds(type) {
-            // 「現実寄りに少し低め」寄りの例
             switch (type) {
-                case "単勝": return (1.4 + Math.random() * 0.8).toFixed(1); // 1.4〜2.2
-                case "複勝": return (1.1 + Math.random() * 0.5).toFixed(1); // 1.1〜1.6
-                case "ワイド": return (1.8 + Math.random() * 1.4).toFixed(1); // 1.8〜3.2
-                case "連複": return (2.8 + Math.random() * 2.0).toFixed(1); // 2.8〜4.8
-                case "連単": return (4.0 + Math.random() * 3.0).toFixed(1); // 4.0〜7.0
+                case "単勝": return (1.4 + Math.random() * 0.8).toFixed(1);
+                case "複勝": return (1.1 + Math.random() * 0.5).toFixed(1);
+                case "ワイド": return (1.8 + Math.random() * 1.4).toFixed(1);
+                case "連複": return (2.8 + Math.random() * 2.0).toFixed(1);
+                case "連単": return (4.0 + Math.random() * 3.0).toFixed(1);
                 default: return "2.0";
             }
         }
@@ -284,12 +298,9 @@
             currentOdds = Number(calcOdds(type));
             oddsBox.textContent = `×${currentOdds}`;
 
-            // 券種が変わったら選択数も合わせる
             const need = (type === "ワイド" || type === "連複" || type === "連単") ? 2 : 1;
             if (selected.length > need) {
-                // 多い分だけ削る
                 while (selected.length > need) selected.shift();
-                // 表示反映
                 [...cubeList.children].forEach(c => {
                     const num = Number(c.textContent.replace("キューブ", ""));
                     c.classList.toggle("selected", selected.includes(num));
@@ -324,7 +335,6 @@
             return true;
         }
 
-        // ★スマホ安定：left を rAF2回で動かす
         function moveRunnerLeft(runnerEl, targetLeftPx, durationMs) {
             runnerEl.style.transition = "none";
             runnerEl.style.left = "10px";
@@ -339,7 +349,7 @@
 
         function renderRaceRunners() {
             raceTrack.innerHTML = "";
-            const laneGap = 42; // 行間
+            const laneGap = 42;
             for (let i = 1; i <= 4; i++) {
                 const r = document.createElement("div");
                 r.className = "runner";
@@ -360,78 +370,51 @@
 
             if (!ensureSelectionValidOrAlert()) return;
 
-            if (bet > points) {
-                alert("ポイント不足");
-                return;
-            }
-
-            // 購入確定
+            // ★ 修正：ポイント不足でも賭けられる（上限なし）
             points -= bet;
             totalBet += bet;
             raceCount++;
-            pointEl.textContent = points;
+            updatePointView();
 
-            // レース準備
             isRacing = true;
             betBtn.disabled = true;
 
-            const finish = shuffle([1, 2, 3, 4]); // 着順
+            const finish = shuffle([1, 2, 3, 4]);
             renderRaceRunners();
 
-            // ゴール位置計算（スマホでも安定）
             const trackWidth = raceTrack.getBoundingClientRect().width;
-            const goalLeft = Math.max(10, Math.floor(trackWidth - 72 - 16)); // runner幅72 + 余白
+            const goalLeft = Math.max(10, Math.floor(trackWidth - 72 - 16));
 
-            // 着順に応じて少しずつ到達距離/時間を変える
             const runners = [...raceTrack.querySelectorAll(".runner")];
             const base = goalLeft;
-            const offsets = [0, -35, -70, -105]; // 1着が一番遠い
+            const offsets = [0, -35, -70, -105];
             const times = [1700, 1950, 2200, 2450];
 
-            // runnerの表示が #1 #2 #3 #4 なので、番号→要素を対応
             const byNum = {};
             runners.forEach(el => {
                 const n = Number(el.textContent.replace("#", ""));
                 byNum[n] = el;
             });
 
-            // アニメ開始（スマホ向け rAF2回）
             finish.forEach((cubeNum, rankIndex) => {
                 const el = byNum[cubeNum];
                 const target = base + offsets[rankIndex];
                 moveRunnerLeft(el, target, times[rankIndex]);
             });
 
-            // 勝敗判定（あなたのルールそのまま）
             let win = false;
             const type = betTypeEl.value;
 
-            if (type === "単勝") {
-                win = selected.includes(finish[0]);
-            }
-            if (type === "複勝") {
-                win = selected.some(n => finish.slice(0, 3).includes(n));
-            }
-            if (type === "ワイド") {
-                win = selected.length >= 2 &&
-                    selected.every(n => finish.slice(0, 3).includes(n));
-            }
-            if (type === "連複") {
-                win = selected.length >= 2 &&
-                    selected.includes(finish[0]) &&
-                    selected.includes(finish[1]);
-            }
-            if (type === "連単") {
-                win = selected[0] === finish[0] &&
-                    selected[1] === finish[1];
-            }
+            if (type === "単勝") win = selected.includes(finish[0]);
+            if (type === "複勝") win = selected.some(n => finish.slice(0, 3).includes(n));
+            if (type === "ワイド") win = selected.length >= 2 && selected.every(n => finish.slice(0, 3).includes(n));
+            if (type === "連複") win = selected.length >= 2 && selected.includes(finish[0]) && selected.includes(finish[1]);
+            if (type === "連単") win = selected[0] === finish[0] && selected[1] === finish[1];
 
-            // 結果表示はアニメ後に出す
             const showAfter = 2550;
             setTimeout(() => {
                 let resultText = `結果：${finish.join(" → ")}<br>`;
 
-                // 見た目（当たり/はずれ強調）
                 finish.forEach((cubeNum, idx) => {
                     const el = byNum[cubeNum];
                     if (!el) return;
@@ -447,7 +430,7 @@
                     resultText += `はずれ（オッズ×${currentOdds}）`;
                 }
 
-                pointEl.textContent = points;
+                updatePointView();
                 resultArea.innerHTML = resultText;
 
                 updateOdds();
@@ -471,11 +454,11 @@
             }, showAfter);
         }
 
-        // 初期化
         document.addEventListener("DOMContentLoaded", () => {
             renderCubes();
             updateOdds();
             renderRaceRunners();
+            updatePointView();
         });
     </script>
 </body>
