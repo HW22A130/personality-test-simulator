@@ -10,16 +10,30 @@
     </title>
 
     <style>
+        :root {
+            --bg: #e6ecf0;
+            --panel: #ffffff;
+            --page: #f9f9f9;
+            --text: #222;
+            --muted: #555;
+            --primary: #1976d2;
+            /* ← ボタン色を統一 */
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --radius: 10px;
+        }
+
         body {
             margin: 0;
             font-family: sans-serif;
-            background: #e6ecf0;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
         }
 
         .layout {
-            max-width: 720px;
+            max-width: 900px;
             margin: 0 auto;
-            background: #f9f9f9;
+            background: var(--page);
             min-height: 100vh;
             padding: 20px;
         }
@@ -27,33 +41,78 @@
         h1 {
             text-align: center;
             font-size: 22px;
-            margin-bottom: 16px;
+            margin: 0 0 16px;
         }
 
         .notice {
             font-size: 14px;
-            color: #555;
+            color: var(--muted);
             background: #fffde7;
             padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            border-radius: 8px;
+            margin-bottom: 18px;
         }
 
         .box {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: var(--panel);
+            padding: 18px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+        }
+
+        .box.center {
             text-align: center;
         }
 
+        .section-title {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 10px;
+        }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 18px;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        .section-title p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ===== 2列レイアウト（PC/タブレット） ===== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        /* ===== スマホは1列に戻す ===== */
+        @media (max-width: 720px) {
+            .layout {
+                padding: 16px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== ドーナツ ===== */
         .donut {
             width: 160px;
             height: 160px;
             margin: 0 auto 10px;
             border-radius: 50%;
-            background: conic-gradient(#1976d2 0%,
-                    #1976d2 var(--rate),
+            background: conic-gradient(var(--primary) 0%,
+                    var(--primary) var(--rate),
                     #e0e0e0 var(--rate),
                     #e0e0e0 100%);
             display: flex;
@@ -63,24 +122,58 @@
             font-weight: bold;
         }
 
+        /* ===== ボタン（統一） ===== */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 520px) {
+            .btn-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .button {
             display: block;
-            margin: 12px auto 0;
-            padding: 12px;
-            max-width: 280px;
-            background: #1976d2;
+            width: 100%;
+            padding: 12px 12px;
+            background: var(--primary);
             color: #fff;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            box-sizing: border-box;
+            border: none;
+            cursor: pointer;
         }
 
-        .sub {
-            background: #90a4ae;
+        .button:hover {
+            opacity: 0.92;
         }
 
-        .reset {
-            background: #b0bec5;
+        .button.small {
+            padding: 10px 12px;
             font-size: 13px;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 6px 0 0;
+        }
+
+        .reset-wrap {
+            text-align: center;
+        }
+
+        .reset-note {
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 10px;
         }
     </style>
 </head>
@@ -97,39 +190,66 @@
             公営ギャンブル等との距離感を測るための参考ツールです。
         </div>
 
-        <!-- 診断結果簡易表示 -->
-        <div class="box" id="simpleResult"></div>
+        <div class="grid-2">
+            <!-- 左：結果・チェック -->
+            <div>
+                <!-- 診断結果簡易表示 -->
+                <div class="box center" id="simpleResult"></div>
 
-        <!-- 診断・体験コンテンツ -->
-        <div class="box">
-            <a class="button" href="check.html">▶ 距離感チェッカーをする</a>
-            <a class="button sub" href="cube-race.html">▶ オンライン競馬等の擬似体験</a>
-            <a class="button sub" href="quick.html">▶ オンライン宝くじの擬似体験</a>
-        </div>
+                <!-- チェック -->
+                <div class="box">
+                    <div class="section-title">
+                        <h2>チェック</h2>
+                        <p>まずは距離感を確認</p>
+                    </div>
 
-        <!-- コラム -->
-        <div class="box">
-            <h2 style="font-size:18px;">制作者のコラム</h2>
-            <p style="font-size:14px; color:#555;">
-                制作者の伝えたいことや体験談を、<br>
-                短い読み物形式でまとめています。
-            </p>
+                    <div class="btn-grid">
+                        <a class="button" href="check.html">▶ 距離感チェッカー</a>
+                        <a class="button" href="result.html">▶ 診断結果を見る</a>
+                    </div>
 
-            <a class="button sub" href="stories/story-01.html">
-                ▶ ① 「ギャンブル」って何？
-            </a>
-            <a class="button sub" href="stories/story-02.html">
-                ▶ ② レスポンシブルゲーミングとは？
-            </a>
-            <a class="button sub" href="stories/story-03.html">
-                ▶ ③ 体験を通した、距離感の作り方。
-            </a>
+                    <p class="muted">
+                        ※ 診断結果が未入力の場合、結果ページでは案内が表示されます。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 右：分野・コラム -->
+            <div>
+                <!-- 分野（体験ツール） -->
+                <div class="box">
+                    <div class="section-title">
+                        <h2>分野</h2>
+                        <p>オンラインの危険性を“体験”</p>
+                    </div>
+
+                    <div class="btn-grid">
+                        <a class="button" href="cube-race.html">▶ オンライン競馬等の擬似体験</a>
+                        <a class="button" href="quick.html">▶ オンライン宝くじの擬似体験</a>
+                    </div>
+                </div>
+
+                <!-- コラム -->
+                <div class="box">
+                    <div class="section-title">
+                        <h2>コラム</h2>
+                        <p>短い読み物（①〜③）</p>
+                    </div>
+
+                    <div class="btn-grid">
+                        <a class="button" href="stories/story-01.html">▶ ① 「ギャンブル」って何？</a>
+                        <a class="button" href="stories/story-02.html">▶ ② 公営ギャンブル等を楽しむ考え方</a>
+                        <a class="button" href="stories/story-03.html">▶ ③ 体験を通した、距離感の作り方</a>
+                        <a class="button" href="criteria.html">▶ 診断基準・点数配分（解説）</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 展示用リセット -->
-        <div class="box">
-            <p style="font-size:13px;">展示・確認用</p>
-            <button class="button reset" onclick="resetData()">診断結果をリセット</button>
+        <div class="box reset-wrap">
+            <p class="reset-note">展示・確認用</p>
+            <button class="button small" onclick="resetData()">診断結果をリセット</button>
         </div>
     </div>
 
@@ -139,21 +259,21 @@
 
         if (!result) {
             simpleBox.innerHTML = `
-                <p><strong>診断結果が入力されていません</strong></p>
-                <p style="font-size:14px;">セルフチェックから始めることができます。</p>
-            `;
+        <p><strong>診断結果が入力されていません</strong></p>
+        <p style="font-size:14px; color:#555;">「距離感チェッカー」から始められます。</p>
+      `;
         } else {
             simpleBox.innerHTML = `
-                <p>あなたの現在の目安</p>
-                <div class="donut" style="--rate:${result.timeRate}%">
-                    ${result.timeRate}%
-                </div>
-                <p style="font-size:14px;">
-                    1日の自由時間に占める<br>
-                    <strong>公営ギャンブル等の割合</strong>
-                </p>
-                <a class="button" href="result.html">▶ 診断結果を詳しく見る</a>
-            `;
+        <p style="margin:0 0 8px;">あなたの現在の目安</p>
+        <div class="donut" style="--rate:${result.timeRate}%">
+          ${result.timeRate}%
+        </div>
+        <p style="font-size:14px; margin:0 0 10px;">
+          1日の自由時間に占める<br>
+          <strong>公営ギャンブル等の割合</strong>
+        </p>
+        <a class="button" href="result.html">▶ 診断結果を詳しく見る</a>
+      `;
         }
 
         function resetData() {
