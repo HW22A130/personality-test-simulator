@@ -8,68 +8,31 @@ if (!userId) {
 }
 
 // ===============================
-// ▼ 診断質問
+// ▼ 診断質問（1〜11）
 // ===============================
 const questions = [
-    {
-        text: "公営ギャンブル等をしていること、およびその結果について、家族や周囲の人に事実と違う説明をしたことはありますか？",
-        weight: 3,
-        image: "images/q01.png"
-    },
-    {
-        text: "公営ギャンブルなどでの損失分を取り返そうとして、別の日に続けて参加したことはありますか？",
-        weight: 3,
-        image: "images/q02.png"
-    },
+    { text: "公営ギャンブル等をしていること、およびその結果について、家族や周囲の人に事実と違う説明をしたことはありますか？", weight: 3, image: "images/q01.png" },
+    { text: "公営ギャンブルなどでの損失分を取り返そうとして、別の日に続けて参加したことはありますか？", weight: 3, image: "images/q02.png" },
 
-    // ★重要質問
-    {
-        text: "自分の公営ギャンブル等との関わり方について、問題があると考えていますか？",
-        weight: 1,
-        image: "images/q03.png"
-    },
-    {
-        text: "あらかじめ決めていた金額をこえて、公営ギャンブル等を続けてしまったことはありますか？",
-        weight: 1,
-        image: "images/q04.png"
-    },
+    { text: "自分の公営ギャンブル等との関わり方について、問題があると考えていますか？", weight: 1, image: "images/q03.png" },
+    { text: "あらかじめ決めていた金額をこえて、公営ギャンブル等を続けてしまったことはありますか？", weight: 1, image: "images/q04.png" },
 
-    // 通常質問
-    {
-        text: "公営ギャンブル等のことで、周囲の人から注意されたり、心配されたことはありますか？",
-        weight: 2,
-        image: "images/q05.png"
-    },
-    {
-        text: "公営ギャンブル等のあとで、後悔や引っかかりを感じたことはありますか？",
-        weight: 1,
-        image: "images/q06.png"
-    },
-    {
-        text: "自分は公営ギャンブル等をやめられないとわかっているが、やめたいと思ったことはありますか？",
-        weight: 1,
-        image: "images/q07.png"
-    },
-    {
-        text: "公営ギャンブル等に使った時間や金額を聞かれた際に、周囲の人に正しく伝えなかったことはありますか？",
-        weight: 1,
-        image: "images/q08.png"
-    },
-    {
-        text: "公営ギャンブル等のためにお金を借り、返済に困ったことはありますか？",
-        weight: 2,
-        image: "images/q09.png"
-    },
-    {
-        text: "公営ギャンブル等のために仕事や授業を休んだことはありますか？",
-        weight: 2,
-        image: "images/q10.png"
-    },
-    {
-        text: "公営ギャンブル等でできた借金返済のために、さらにお金を借りたことはありますか？",
-        weight: 2,
-    }
+    { text: "公営ギャンブル等のことで、周囲の人から注意されたり、心配されたことはありますか？", weight: 2, image: "images/q05.png" },
+    { text: "公営ギャンブル等のあとで、後悔や引っかかりを感じたことはありますか？", weight: 1, image: "images/q06.png" },
+    { text: "自分は公営ギャンブル等をやめられないとわかっているが、やめたいと思ったことはありますか？", weight: 1, image: "images/q07.png" },
+    { text: "公営ギャンブル等に使った時間や金額を聞かれた際に、周囲の人に正しく伝えなかったことはありますか？", weight: 1, image: "images/q08.png" },
+    { text: "公営ギャンブル等のためにお金を借り、返済に困ったことはありますか？", weight: 2, image: "images/q09.png" },
+    { text: "公営ギャンブル等のために仕事や授業を休んだことはありますか？", weight: 2, image: "images/q10.png" },
+
+    // ★q11：画像なしにする（image を書かない or null）
+    { text: "公営ギャンブル等でできた借金返済のために、さらにお金を借りたことはありますか？", weight: 2 }
 ];
+
+// ===============================
+// ▼ q12（自由時間）用画像
+// ===============================
+// 好きなファイル名でOK（例：images/q12.png）
+const timeQuestionImage = "images/q12.png";
 
 // ===============================
 // ▼ 状態管理
@@ -78,12 +41,17 @@ let currentIndex = 0;
 let totalScore = 0;
 let phase = "question"; // question | time
 
+// ★ 全体の設問数：質問(11) + 自由時間(1) = 12
+const TOTAL_STEPS = questions.length + 1;
+
 // ===============================
 // ▼ HTML要素
 // ===============================
 const questionBox = document.getElementById("questionBox");
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
+const imageArea = document.getElementById("imageArea");
+const progressText = document.getElementById("progressText");
 
 // ===============================
 // ▼ 初期表示
@@ -93,11 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===============================
-// ▼ 質問表示
+// ▼ 質問表示（1〜11）
 // ===============================
-const imageArea = document.getElementById("imageArea");
-const progressText = document.getElementById("progressText");
-
 function showQuestion() {
     if (currentIndex >= questions.length) {
         showTimeInput();
@@ -113,28 +78,31 @@ function showQuestion() {
         </div>
     `;
 
-    // 画像（中央寄せ・少し大きめ）
-    imageArea.innerHTML = `
-    <img
-        src="${q.image}"
-        alt="質問画像"
-        style="
-        display:block;
-        margin:24px auto 0;
-        width:100%;
-        max-width:740px;
-        border-radius:12px;
-    "
->
-`;
+    // 画像：ある時だけ表示（q11は image がないので非表示）
+    if (q.image) {
+        imageArea.innerHTML = `
+            <img
+                src="${q.image}"
+                alt="質問画像"
+                style="
+                    display:block;
+                    margin:24px auto 0;
+                    width:100%;
+                    max-width:740px;
+                    border-radius:12px;
+                "
+            >
+        `;
+    } else {
+        imageArea.innerHTML = ""; // 画像なし
+    }
 
-    // 進捗表示
-    progressText.textContent =
-        `質問 ${currentIndex + 1} / ${questions.length}`;
+    // 進捗表示（質問 〇 / 12）
+    progressText.textContent = `質問 ${currentIndex + 1} / ${TOTAL_STEPS}`;
 }
 
 // ===============================
-// ▼ 回答処理
+// ▼ 回答処理（1〜11）
 // ===============================
 yesBtn.onclick = () => {
     if (phase !== "question") return;
@@ -150,13 +118,33 @@ noBtn.onclick = () => {
 };
 
 // ===============================
-// ▼ 時間入力画面
+// ▼ 時間入力画面（q12）
 // ===============================
 function showTimeInput() {
     phase = "time";
 
+    // 進捗を q12 にする
+    progressText.textContent = `質問 ${TOTAL_STEPS} / ${TOTAL_STEPS}`;
+
+    // ボタンは隠す
     document.querySelector(".buttons").style.display = "none";
 
+    // ★ q12画像を表示
+    imageArea.innerHTML = `
+        <img
+            src="${timeQuestionImage}"
+            alt="自由時間の質問画像"
+            style="
+                display:block;
+                margin:24px auto 0;
+                width:100%;
+                max-width:740px;
+                border-radius:12px;
+            "
+        >
+    `;
+
+    // 時間質問 UI
     questionBox.innerHTML = `
       <p style="font-size:16px;">
         1日の自由時間のうち、<br>
@@ -228,7 +216,7 @@ function finishTest(timeRate) {
         userId,
         riskScore: totalScore,
         timeRate,
-        questionCount: questions.length,
+        questionCount: TOTAL_STEPS, // ★ 12問として保存
         finishedAt: new Date().toISOString()
     };
 
