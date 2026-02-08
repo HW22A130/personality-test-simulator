@@ -191,6 +191,91 @@
             text-align: center;
             max-width: 220px;
         }
+
+        /* ====== 離脱前モーダル ====== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 9999;
+        }
+
+        .modal {
+            width: min(720px, 100%);
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 14px 16px;
+            background: #0f172a;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .modal-body {
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .modal-message {
+            background: #eef2f5;
+            border-radius: 10px;
+            padding: 14px;
+            max-height: 48vh;
+            overflow: auto;
+        }
+
+        .modal-footer {
+            padding: 14px 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: flex-end;
+            border-top: 1px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+
+        .modal-footer .left {
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .btn-secondary {
+            width: auto;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #0f172a;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            width: auto;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            background: #1976d2;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
@@ -246,7 +331,26 @@
         <div class="race-track" id="raceTrack"></div>
         <div class="result" id="resultArea"></div>
 
-        <a class="home-button" href="index.html">▶ ホームに戻る</a>
+        <!-- ★変更：id付与 -->
+        <a class="home-button" id="homeBtn" href="index.html">▶ ホームに戻る</a>
+    </div>
+
+    <!-- ====== 離脱前モーダル（新規追加） ====== -->
+    <div class="modal-overlay" id="leaveModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="leaveTitle">
+            <div class="modal-header" id="leaveTitle">ホームへ戻る前に確認してください</div>
+            <div class="modal-body">
+                <div class="modal-message" id="leaveMessage"></div>
+            </div>
+            <div class="modal-footer">
+                <label class="left">
+                    <input type="checkbox" id="ackCheck">
+                    <span>メッセージを確認しました</span>
+                </label>
+                <button type="button" class="btn-secondary" id="cancelLeaveBtn">体験を続ける</button>
+                <button type="button" class="btn-primary" id="confirmLeaveBtn" disabled>ホームへ戻る</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -259,15 +363,23 @@
         const raceTrack = document.getElementById("raceTrack");
         const betBtn = document.getElementById("betBtn");
 
+        // ★離脱前モーダル要素
+        const homeBtn = document.getElementById("homeBtn");
+        const leaveModal = document.getElementById("leaveModal");
+        const leaveMessage = document.getElementById("leaveMessage");
+        const ackCheck = document.getElementById("ackCheck");
+        const cancelLeaveBtn = document.getElementById("cancelLeaveBtn");
+        const confirmLeaveBtn = document.getElementById("confirmLeaveBtn");
+
         let points = 10000;
         let selected = [];
         let raceCount = 0;
         let totalBet = 0;
-        let currentOdds = null; // ← 連動オッズ
+        let currentOdds = null;
         let isRacing = false;
 
         // 各キューブの単勝オッズ（固定）
-        let cubeOdds = {}; // {1:1.8, 2:2.5, ...}
+        let cubeOdds = {};
         let favoriteCube = 1;
 
         function updatePointView() {
@@ -281,7 +393,7 @@
 
         // 単勝オッズを初期生成（ページ読み込み時に固定）
         function initCubeOdds() {
-            const base = [1.6, 2.3, 3.2, 4.6]; // それっぽいレンジ
+            const base = [1.6, 2.3, 3.2, 4.6];
             const shuffled = shuffle(base);
 
             cubeOdds = {};
@@ -295,7 +407,7 @@
         }
 
         function cubeLabelHTML(n) {
-            const orderIndex = selected.indexOf(n); // 選択順
+            const orderIndex = selected.indexOf(n);
             const isFav = (n === favoriteCube);
             const odds = cubeOdds[n];
 
@@ -348,16 +460,14 @@
             const type = betTypeEl.value;
             const need = needCountByType(type);
 
-            // 連単は順番が重要なので、選択順を維持しつつ最大2つ
             if (selected.length > need) {
-                selected.shift(); // 先に選んだ方を外す
+                selected.shift();
             }
 
             refreshCubeView();
             updateOdds();
         }
 
-        // ★ここが修正ポイント：選択内容に連動してオッズを算出
         function calcTicketOdds(type, selectedNums) {
             const need = needCountByType(type);
             if (selectedNums.length !== need) return null;
@@ -365,25 +475,20 @@
             const a = cubeOdds[selectedNums[0]];
             const b = need === 2 ? cubeOdds[selectedNums[1]] : null;
 
-            // ざっくり「それっぽい」レンジになるように係数を調整（教材用）
             if (type === "単勝") {
                 return a;
             }
             if (type === "複勝") {
-                // 単勝より低く：1.1〜1.9くらいに寄せる
                 return Math.max(1.1, Number((a * 0.65).toFixed(1)));
             }
             if (type === "ワイド") {
-                // 2頭のオッズに比例して少し上がる
-                return Number(((a + b) * 0.55).toFixed(1)); // 1.8〜3.2 付近
+                return Number(((a + b) * 0.55).toFixed(1));
             }
             if (type === "連複") {
-                // ワイドより少し上
-                return Number(((a + b) * 0.85).toFixed(1)); // 2.8〜4.8 付近
+                return Number(((a + b) * 0.85).toFixed(1));
             }
             if (type === "連単") {
-                // 順番あり：さらに上（選択順が意味を持つ）
-                return Number(((a * b) * 0.55).toFixed(1)); // 4.0〜7.0 付近に寄せる
+                return Number(((a * b) * 0.55).toFixed(1));
             }
             return null;
         }
@@ -401,7 +506,6 @@
         function updateOdds() {
             const type = betTypeEl.value;
 
-            // 券種変更時は必要数に合わせる
             const need = needCountByType(type);
             if (selected.length > need) {
                 while (selected.length > need) selected.shift();
@@ -419,7 +523,6 @@
 
             currentOdds = odds;
 
-            // 「どのオッズがどの買い目か」が分かる表示にする
             oddsBox.innerHTML = `
                 <div><strong>${formatBetInfo(type)}</strong></div>
                 <div style="margin-top:6px;">想定オッズ：<strong>×${currentOdds}</strong></div>
@@ -452,7 +555,6 @@
             return true;
         }
 
-        // ★スマホ安定：left を rAF2回で動かす
         function moveRunnerLeft(runnerEl, targetLeftPx, durationMs) {
             runnerEl.style.transition = "none";
             runnerEl.style.left = "10px";
@@ -488,7 +590,6 @@
 
             if (!ensureSelectionValidOrAlert()) return;
 
-            // オッズがまだ計算できていない場合の保険
             if (currentOdds == null) {
                 updateOdds();
                 if (currentOdds == null) {
@@ -497,7 +598,6 @@
                 }
             }
 
-            // ポイント不足でも賭けられる（上限なし）
             points -= bet;
             totalBet += bet;
             raceCount++;
@@ -506,10 +606,9 @@
             isRacing = true;
             betBtn.disabled = true;
 
-            const finish = shuffle([1, 2, 3, 4]); // 着順
+            const finish = shuffle([1, 2, 3, 4]);
             renderRaceRunners();
 
-            // ゴール位置計算
             const trackWidth = raceTrack.getBoundingClientRect().width;
             const goalLeft = Math.max(10, Math.floor(trackWidth - 72 - 16));
 
@@ -530,7 +629,6 @@
                 moveRunnerLeft(el, target, times[rankIndex]);
             });
 
-            // 勝敗判定
             let win = false;
             const type = betTypeEl.value;
 
@@ -563,7 +661,6 @@
                 updatePointView();
                 resultArea.innerHTML = resultText;
 
-                // レース後にオッズ再計算（同じ選択なら同じ値のまま）
                 updateOdds();
 
                 if (raceCount >= 5) {
@@ -585,12 +682,102 @@
             }, showAfter);
         }
 
+        /* =========================
+           ★ここから：離脱前モーダル制御（新規追加）
+        ========================= */
+
+        function buildLeaveMessageHTML() {
+            // 途中離脱でも「気づかないうちに使用金額が増える」意図が伝わるように、
+            // 現状の回数と合計使用を差し込む
+            const done = raceCount;
+            const remain = Math.max(0, 5 - done);
+
+            const head = `
+                <strong>体験の途中でホームへ戻ろうとしています</strong><br>
+                ここまでの体験状況：<br>
+                ・実施レース数：<strong>${done}回</strong><br>
+                ・使用合計：<strong>${totalBet}P</strong><br><br>
+            `;
+
+            const body = `
+                短時間で何度も賭けられる仕組みは、気づかないうちに使用金額が増えてしまう危険性があります。<br><br>
+                実際の発券場では次レースまで時間が空き、投票するかを考える間ができますが、
+                オンラインではその感覚が薄まりやすいです。<br><br>
+                1レースごとに「今回いくら使ったか」を確認する、上限を決めるなど、
+                自分なりの付き合い方を目指してください。<br><br>
+            `;
+
+            const tail = (done < 5)
+                ? `※この体験は本来<strong>5回</strong>を目安に設計しています（残り：<strong>${remain}回</strong>）。<br>`
+                : `※5回以上体験しています。<br>`;
+
+            return head + body + tail;
+        }
+
+        function openLeaveModal() {
+            ackCheck.checked = false;
+            confirmLeaveBtn.disabled = true;
+            leaveMessage.innerHTML = buildLeaveMessageHTML();
+
+            leaveModal.style.display = "flex";
+            leaveModal.setAttribute("aria-hidden", "false");
+
+            // メッセージの先頭へ
+            leaveMessage.scrollTop = 0;
+        }
+
+        function closeLeaveModal() {
+            leaveModal.style.display = "none";
+            leaveModal.setAttribute("aria-hidden", "true");
+        }
+
+        // 「ホームに戻る」を押した時に必ずモーダルを挟む
+        homeBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            // レース中に抜けられると挙動が不安定なので防止
+            if (isRacing) {
+                alert("レース中はホームに戻れません。結果表示後にお試しください。");
+                return;
+            }
+
+            openLeaveModal();
+        });
+
+        // チェックでボタン解放
+        ackCheck.addEventListener("change", () => {
+            confirmLeaveBtn.disabled = !ackCheck.checked;
+        });
+
+        // 続ける
+        cancelLeaveBtn.addEventListener("click", () => {
+            closeLeaveModal();
+        });
+
+        // ホームへ戻る（チェック済みのみ）
+        confirmLeaveBtn.addEventListener("click", () => {
+            if (!ackCheck.checked) return;
+            window.location.href = "index.html";
+        });
+
+        // 背景クリックで閉じる（誤操作防止のため、閉じるだけにする）
+        leaveModal.addEventListener("click", (e) => {
+            if (e.target === leaveModal) closeLeaveModal();
+        });
+
+        // ESCで閉じる
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && leaveModal.style.display === "flex") {
+                closeLeaveModal();
+            }
+        });
+
         document.addEventListener("DOMContentLoaded", () => {
-            initCubeOdds();       // ★人気・単勝オッズ生成（固定）
+            initCubeOdds();
             renderCubes();
             renderRaceRunners();
             updatePointView();
-            updateOdds();         // ★初期表示で oddsBox を整える
+            updateOdds();
         });
     </script>
 </body>
