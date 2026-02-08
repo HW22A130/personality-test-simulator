@@ -24,14 +24,13 @@ const questions = [
     { text: "公営ギャンブル等のためにお金を借り、返済に困ったことはありますか？", weight: 2, image: "images/q09.png" },
     { text: "公営ギャンブル等のために仕事や授業を休んだことはありますか？", weight: 2, image: "images/q10.png" },
 
-    // ★q11：画像なしにする（image を書かない or null）
+    // ★q11：画像なし
     { text: "公営ギャンブル等でできた借金返済のために、さらにお金を借りたことはありますか？", weight: 2 }
 ];
 
 // ===============================
 // ▼ q12（自由時間）用画像
 // ===============================
-// 好きなファイル名でOK（例：images/q12.png）
 const timeQuestionImage = "images/q12.png";
 
 // ===============================
@@ -41,7 +40,6 @@ let currentIndex = 0;
 let totalScore = 0;
 let phase = "question"; // question | time
 
-// ★ 全体の設問数：質問(11) + 自由時間(1) = 12
 const TOTAL_STEPS = questions.length + 1;
 
 // ===============================
@@ -71,34 +69,24 @@ function showQuestion() {
 
     const q = questions[currentIndex];
 
-    // 質問文
-    questionBox.innerHTML = `
-        <div class="question-text">
-            ${q.text}
-        </div>
-    `;
-
-    // 画像：ある時だけ表示（q11は image がないので非表示）
-    if (q.image) {
-        imageArea.innerHTML = `
-            <img
-                src="${q.image}"
-                alt="質問画像"
-                style="
-                    display:block;
-                    margin:24px auto 0;
-                    width:100%;
-                    max-width:740px;
-                    border-radius:12px;
-                "
-            >
-        `;
-    } else {
-        imageArea.innerHTML = ""; // 画像なし
-    }
-
-    // 進捗表示（質問 〇 / 12）
+    // 進捗
     progressText.textContent = `質問 ${currentIndex + 1} / ${TOTAL_STEPS}`;
+
+    // 問題文
+    questionBox.innerHTML = `
+    <div class="question-text" style="font-size:17px; line-height:1.6;">
+      ${q.text}
+    </div>
+  `;
+
+    // 画像（ある時だけ）
+    if (q.image) {
+        imageArea.style.display = "block";
+        imageArea.innerHTML = `<img src="${q.image}" alt="質問画像">`;
+    } else {
+        imageArea.style.display = "none";
+        imageArea.innerHTML = "";
+    }
 }
 
 // ===============================
@@ -123,69 +111,58 @@ noBtn.onclick = () => {
 function showTimeInput() {
     phase = "time";
 
-    // 進捗を q12 にする
+    // 進捗を q12 に
     progressText.textContent = `質問 ${TOTAL_STEPS} / ${TOTAL_STEPS}`;
 
-    // ボタンは隠す
+    // ボタン非表示
     document.querySelector(".buttons").style.display = "none";
 
-    // ★ q12画像を表示
-    imageArea.innerHTML = `
-        <img
-            src="${timeQuestionImage}"
-            alt="自由時間の質問画像"
-            style="
-                display:block;
-                margin:24px auto 0;
-                width:100%;
-                max-width:740px;
-                border-radius:12px;
-            "
-        >
-    `;
+    // ★ q12画像を表示（問題文の直後に見える位置にあるのはHTML側で保証）
+    imageArea.style.display = "block";
+    imageArea.innerHTML = `<img src="${timeQuestionImage}" alt="自由時間の質問画像">`;
 
     // 時間質問 UI
     questionBox.innerHTML = `
-      <p style="font-size:16px;">
-        1日の自由時間のうち、<br>
-        <strong>公営ギャンブル等に使っている割合</strong>はどれくらいですか？
-      </p>
+    <p style="font-size:16px; margin:0;">
+      1日の自由時間のうち、<br>
+      <strong>公営ギャンブル等に使っている割合</strong>はどれくらいですか？
+    </p>
 
-      <div style="
-        margin:20px auto;
-        width:180px;
-        height:180px;
-        border-radius:50%;
-        background:conic-gradient(#d32f2f 0% 20%, #e0e0e0 20% 100%);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:22px;
-        font-weight:bold;"
-        id="donut">
-        <span id="donutText">20%</span>
-      </div>
+    <div style="
+      margin:20px auto;
+      width:180px;
+      height:180px;
+      border-radius:50%;
+      background:conic-gradient(#d32f2f 0% 20%, #e0e0e0 20% 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:22px;
+      font-weight:bold;"
+      id="donut">
+      <span id="donutText">20%</span>
+    </div>
 
-      <input type="range" min="0" max="100" value="20" id="timeSlider">
-      <p>現在：<strong><span id="rateValue">20</span>%</strong></p>
+    <input type="range" min="0" max="100" value="20" id="timeSlider" style="width:100%;">
+    <p>現在：<strong><span id="rateValue">20</span>%</strong></p>
 
-      <button id="finishBtn"
-        style="
-        margin-top:20px;
-        width:100%;
-        padding:15px;
-        font-size:18px;
-        border:none;
-        border-radius:8px;
-        background:#1976d2;
-        color:#fff;">
-        診断結果を見る
-      </button>
+    <button id="finishBtn"
+      style="
+      margin-top:20px;
+      width:100%;
+      padding:15px;
+      font-size:18px;
+      border:none;
+      border-radius:8px;
+      background:#1976d2;
+      color:#fff;">
+      診断結果を見る
+    </button>
 
-      <p style="font-size:13px; color:#555;">
-        ※ 仕事・睡眠・家事を除いた「自由時間」を想定しています
-      </p>
-    `;
+    <p style="font-size:13px; color:#555;">
+      ※ 仕事・睡眠・家事を除いた「自由時間」を想定しています
+    </p>
+  `;
 
     const slider = document.getElementById("timeSlider");
     const donut = document.getElementById("donut");
@@ -199,9 +176,7 @@ function showTimeInput() {
         rateValue.textContent = val;
     }
 
-    slider.addEventListener("input", () => {
-        updateDonut(slider.value);
-    });
+    slider.addEventListener("input", () => updateDonut(slider.value));
 
     document.getElementById("finishBtn").onclick = () => {
         finishTest(Number(slider.value));
@@ -216,7 +191,7 @@ function finishTest(timeRate) {
         userId,
         riskScore: totalScore,
         timeRate,
-        questionCount: TOTAL_STEPS, // ★ 12問として保存
+        questionCount: TOTAL_STEPS,
         finishedAt: new Date().toISOString()
     };
 

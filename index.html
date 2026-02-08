@@ -40,7 +40,14 @@
         h1 {
             text-align: center;
             font-size: 22px;
-            margin: 0 0 16px;
+            margin: 0 0 12px;
+        }
+
+        .subhead {
+            text-align: center;
+            font-size: 13px;
+            color: var(--muted);
+            margin: 0 0 14px;
         }
 
         .notice {
@@ -102,6 +109,21 @@
             }
         }
 
+        .lane-badge {
+            display: inline-block;
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #e3f2fd;
+            color: #0d47a1;
+            margin-bottom: 10px;
+        }
+
+        .lane-badge.exp {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
         .donut {
             width: 160px;
             height: 160px;
@@ -161,6 +183,27 @@
             margin: 8px 0 0;
         }
 
+        .tagline {
+            font-size: 14px;
+            color: #333;
+            margin: 8px 0 0;
+        }
+
+        .tagline strong {
+            color: #0d47a1;
+        }
+
+        .examples {
+            margin: 10px 0 0;
+            padding-left: 18px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .examples li {
+            margin-bottom: 6px;
+        }
+
         .reset-wrap {
             text-align: center;
         }
@@ -171,15 +214,11 @@
             margin: 0 0 10px;
         }
 
-        /* 追加：キーワード強調 */
-        .tagline {
-            font-size: 14px;
-            color: #333;
-            margin: 8px 0 0;
-        }
-
-        .tagline strong {
-            color: #0d47a1;
+        .hr {
+            height: 1px;
+            background: #e0e0e0;
+            border: none;
+            margin: 14px 0;
         }
     </style>
 </head>
@@ -190,33 +229,62 @@
             公営ギャンブル等が“適度な娯楽”として成立するための<br>
             サポートツールサイト
         </h1>
+        <p class="subhead">
+            経験の有無に関係なく、「自分のライン」を作るためのセルフツールです。
+        </p>
 
         <div class="notice">
-            このサイトは、医療的な診断を行うものではありません。<br>
+            このサイトは医療的な診断を行うものではありません。<br>
             目的は「やめさせること」ではなく、<strong>レスポンシブルゲーミング（責任ある遊び方）</strong>の視点で、<br>
-            公営ギャンブル等との<strong>距離感</strong>を見直すきっかけを作ることです。
+            公営ギャンブル等との<strong>距離感</strong>を見直すきっかけを作ることです。<br><br>
+            ※公営ギャンブル等の経験がない場合も、<strong>「ガチャ」「投げ銭」「株」「くじ」など</strong>に置き換えて使えます。
         </div>
 
         <div class="grid-2">
-            <!-- 左：結果・チェック -->
+            <!-- 左：未経験者向け -->
             <div>
-                <!-- 診断結果簡易表示 -->
-                <div class="box center" id="simpleResult"></div>
-
-                <!-- チェック -->
                 <div class="box">
+                    <span class="lane-badge">未経験者向け：まずは“考え方”と置き換え</span>
+
                     <div class="section-title">
-                        <h2>チェック</h2>
-                        <p>まずは現状を可視化</p>
+                        <h2>まず読む（置き換えOK）</h2>
+                        <p>入口はここ</p>
                     </div>
 
                     <p class="tagline">
-                        「やる／やらない」ではなく、<strong>自分のラインを保てているか</strong>を確認します。
+                        「公営ギャンブル等をしたことがない」人は、まず<strong>“ギャンブル的要素”</strong>を知るところから始められます。
+                    </p>
+
+                    <ul class="examples">
+                        <li>ソシャゲのガチャ：確率×課金で回数が増えやすい</li>
+                        <li>投げ銭：短時間で繰り返しやすい</li>
+                        <li>くじ・抽選：当たる期待で続けやすい</li>
+                        <li>株・FX：変動と期待で判断が揺れやすい</li>
+                    </ul>
+
+                    <div class="btn-grid">
+                        <a class="button" href="stories/story-01.html">▶ ① 「ギャンブル」って何？</a>
+                        <a class="button" href="stories/story-02.html">▶ ② レスポンシブルゲーミング</a>
+                    </div>
+
+                    <p class="muted">
+                        ※「自分の生活を崩さないライン」を作るための“考え方”が中心です。
+                    </p>
+
+                    <hr class="hr">
+
+                    <div class="section-title">
+                        <h2>軽くチェック</h2>
+                        <p>経験なしでもOK</p>
+                    </div>
+
+                    <p class="tagline">
+                        「やる／やらない」ではなく、<strong>ラインを保てているか</strong>を確認します（置き換えて回答できます）。
                     </p>
 
                     <div class="btn-grid">
                         <a class="button" href="check.html">▶ 距離感チェッカー</a>
-                        <a class="button" href="result.html">▶ 診断結果を見る</a>
+                        <a class="button" href="criteria.html">▶ 診断基準（解説）</a>
                     </div>
 
                     <p class="muted">
@@ -225,10 +293,14 @@
                 </div>
             </div>
 
-            <!-- 右：分野・コラム -->
+            <!-- 右：経験者向け -->
             <div>
-                <!-- 分野（体験ツール） -->
+                <!-- 診断結果（経験者はここが見えると嬉しい） -->
+                <div class="box center" id="simpleResult"></div>
+
                 <div class="box">
+                    <span class="lane-badge exp">経験者向け：体験→振り返り</span>
+
                     <div class="section-title">
                         <h2>体験コンテンツ</h2>
                         <p>“気づき”を体験</p>
@@ -236,6 +308,7 @@
 
                     <p class="tagline">
                         短時間で繰り返せる仕組みは、<strong>金額感覚が薄れやすい</strong>特徴があります。
+                        体験後に「回数」「使用金額」を振り返るのも、責任ある遊び方の一部です。
                     </p>
 
                     <div class="btn-grid">
@@ -243,28 +316,25 @@
                         <a class="button" href="quick.html">▶ オンライン宝くじ抽選の擬似体験</a>
                     </div>
 
-                    <p class="muted">
-                        ※ 体験後に「使った金額」「回数」を振り返るのも、責任ある遊び方の一部です。
-                    </p>
-                </div>
+                    <hr class="hr">
 
-                <!-- コラム -->
-                <div class="box">
                     <div class="section-title">
-                        <h2>コラム</h2>
-                        <p>考え方を整理する（①〜③）</p>
+                        <h2>コラム（③：距離感の作り方）</h2>
+                        <p>経験者の振り返り</p>
                     </div>
 
                     <p class="tagline">
-                        レスポンシブルゲーミングの考え方を、<strong>言葉として持ち帰れる</strong>ようにまとめています。
+                        「なぜ増えたのか」「どこで止められたか」を整理し、<strong>自分のラインを言語化</strong>します。
                     </p>
 
                     <div class="btn-grid">
-                        <a class="button" href="stories/story-01.html">▶ ① 「ギャンブル」って何？</a>
-                        <a class="button" href="stories/story-02.html">▶ ② レスポンシブルゲーミングとは？</a>
-                        <a class="button" href="stories/story-03.html">▶ ③ 体験を通した、距離感の作り方</a>
-                        <a class="button" href="criteria.html">▶ 診断基準・点数配分（解説）</a>
+                        <a class="button" href="stories/story-03.html">▶ ③ 距離感の作り方（体験談）</a>
+                        <a class="button" href="result.html">▶ 診断結果を見る</a>
                     </div>
+
+                    <p class="muted">
+                        ※ 体験→結果→コラムの順で読むと、自分の傾向が掴みやすいです。
+                    </p>
                 </div>
             </div>
         </div>
@@ -282,10 +352,13 @@
 
         if (!result) {
             simpleBox.innerHTML = `
-        <p><strong>診断結果が入力されていません</strong></p>
+        <p style="margin:0 0 8px;"><strong>診断結果がまだありません</strong></p>
         <p style="font-size:14px; color:#555; margin:8px 0 0;">
-          まずはセルフチェックで、現在の距離感を確認できます。
+          経験の有無に関係なく、まずは「距離感チェッカー」で現在の状態を可視化できます。
         </p>
+        <div style="margin-top:12px;">
+          <a class="button" href="check.html">▶ 距離感チェッカーへ</a>
+        </div>
       `;
         } else {
             simpleBox.innerHTML = `
@@ -299,7 +372,7 @@
         </p>
         <a class="button" href="result.html">▶ 診断結果を詳しく見る</a>
         <p class="muted" style="margin-top:10px;">
-          ※ 「自分のライン」を守れているか、結果ページで確認できます。
+          ※ ラインを保てているか、結果ページで確認できます。
         </p>
       `;
         }

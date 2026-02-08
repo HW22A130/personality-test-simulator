@@ -21,10 +21,27 @@
         #questionBox {
             background: white;
             padding: 24px;
-            margin: 30px 0;
+            margin: 30px 0 10px;
+            /* ★下の余白を減らして画像を近づける */
             border-radius: 8px;
             font-size: 18px;
             text-align: center;
+        }
+
+        /* ★ 画像エリア：問題文の直後に置く */
+        #imageArea {
+            text-align: center;
+            margin: 8px 0 16px;
+            /* ★ すぐ来るように */
+        }
+
+        #imageArea img {
+            width: 100%;
+            max-width: 720px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 10px;
         }
 
         .buttons {
@@ -66,20 +83,6 @@
             border-radius: 8px;
         }
 
-        #imageArea {
-            text-align: center;
-        }
-
-        /* ★追加：質問画像を大きくする */
-        #imageArea img {
-            width: 100%;
-            max-width: 720px;
-            height: auto;
-            display: block;
-            margin: 18px auto 0;
-            border-radius: 10px;
-        }
-
         .home-area {
             margin-top: 28px;
             text-align: center;
@@ -106,7 +109,6 @@
 </head>
 
 <body>
-
     <div class="layout">
         <h1>公営ギャンブル等との距離 セルフチェック</h1>
 
@@ -115,16 +117,15 @@
             <strong>直感で「はい / いいえ」</strong>で答えてください。
         </p>
 
-        <div id="questionBox">
-            質問が表示されます
-        </div>
+        <div id="questionBox">質問が表示されます</div>
+
+        <!-- ★ ここに移動：問題文の直後に画像 -->
+        <div id="imageArea"></div>
 
         <div class="buttons">
             <button id="yesBtn">はい</button>
             <button id="noBtn">いいえ</button>
         </div>
-
-        <div id="imageArea"></div>
 
         <div class="progress" id="progressText"></div>
 
